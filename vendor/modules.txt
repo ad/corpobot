@@ -1,0 +1,23 @@
+# github.com/amoghe/distillog v0.0.0-20180726233512-ae382b35b717
+## explicit
+github.com/amoghe/distillog
+# github.com/go-telegram-bot-api/telegram-bot-api v4.6.4+incompatible
+## explicit
+# github.com/lazada/sqle v0.0.0-20171211164427-f1ca64d42ef4
+## explicit
+github.com/lazada/sqle
+github.com/lazada/sqle/embed
+github.com/lazada/sqle/strcase
+# github.com/mattn/go-sqlite3 v2.0.3+incompatible
+## explicit
+github.com/mattn/go-sqlite3
+# github.com/technoweenie/multipartstreamer v1.0.1
+## explicit
+github.com/technoweenie/multipartstreamer
+# golang.org/x/net v0.0.0-20201216054612-986b41b23924
+## explicit
+golang.org/x/net/internal/socks
+golang.org/x/net/proxy
+# gopkg.in/telegram-bot-api.v4 v4.6.4
+## explicit
+gopkg.in/telegram-bot-api.v4
