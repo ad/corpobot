@@ -1,0 +1,6 @@
+# Binaries for programs and plugins
+*.test
+
+.env
+
+db/corpobot.db
