@@ -2,14 +2,20 @@ package main
 
 import (
 	"log"
+	// "strconv"
 
 	config "github.com/ad/corpobot/config"
 	database "github.com/ad/corpobot/db"
+	"github.com/ad/corpobot/plugins"
 	telegram "github.com/ad/corpobot/telegram"
 
 	dlog "github.com/amoghe/distillog"
 	sql "github.com/lazada/sqle"
 	tgbotapi "gopkg.in/telegram-bot-api.v4"
+
+	_ "github.com/ad/corpobot/plugins/help"
+	_ "github.com/ad/corpobot/plugins/start"
+	_ "github.com/ad/corpobot/plugins/echo"
 )
 
 const version = "0.0.1"
@@ -49,6 +55,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("[INIT] [Failed to init Telegram updates chan: %v]", err)
 	}
+
+	// Bootstrapper for plugins
+	for _, d := range plugins.Plugins {
+		go d.OnStart()
+	}
+	// log.Println(strconv.Itoa(len(plugins.Plugins)) + " plugins loaded")
 
 	telegram.ProcessTelegramMessages(db, bot, updates)
 }
