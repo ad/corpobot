@@ -20,22 +20,9 @@ func init() {
 }
 
 func (m *UsersPlugin) OnStart() {
-	plugin := &database.Plugin{
-		Name: "users.UsersPlugin",
-		State: "enabled",
-	}
-
-	plugin, err := database.AddPluginIfNotExist(plugins.DB, plugin)
-	if err != nil {
-		dlog.Errorln("failed: " + err.Error())
-	}
-
-	if plugin.State != "enabled" {
-		dlog.Debugln("[UsersPlugin] Disabled")
+	if !plugins.CheckIfPluginDisabled("users.UsersPlugin", "enabled") {
 		return
 	}
-
-	dlog.Debugln("[UsersPlugin] Started")
 
 	plugins.RegisterCommand("userlist", "...")
 	plugins.RegisterCommand("userpromote", "...")
@@ -43,6 +30,8 @@ func (m *UsersPlugin) OnStart() {
 	plugins.RegisterCommand("userdelete", "...")
 	plugins.RegisterCommand("userunblock", "...")
 	plugins.RegisterCommand("userundelete", "...")
+	plugins.RegisterCommand("userban", "...")
+	plugins.RegisterCommand("userunban", "...")
 }
 
 func (m *UsersPlugin) OnStop() {
@@ -54,6 +43,8 @@ func (m *UsersPlugin) OnStop() {
 	plugins.UnregisterCommand("userdelete")
 	plugins.UnregisterCommand("userunblock")
 	plugins.UnregisterCommand("userundelete")
+	plugins.UnregisterCommand("userban")
+	plugins.UnregisterCommand("userunban")
 }
 
 func (m *UsersPlugin) Run(update *tgbotapi.Update) (bool, error) {
@@ -134,6 +125,14 @@ func (m *UsersPlugin) Run(update *tgbotapi.Update) (bool, error) {
 		}
 
 		return true, telegram.Send(update.Message.Chat.ID, update.Message.Command() + " success")
+	}
+
+	if update.Message.Command() == "userban" {
+		// https://core.telegram.org/bots/api#kickchatmember
+	}
+
+	if update.Message.Command() == "userunban" {
+		// https://core.telegram.org/bots/api#unbanchatmember
 	}
 
 	return false, nil

@@ -44,7 +44,7 @@ func InitTelegram(token, proxyHost, proxyPort, proxyUser, proxyPassword string, 
 
 	bot.Debug = debug
 
-	dlog.Debugf("Authorized on account @%s", bot.Self.UserName)
+	dlog.Debugf("Authorized on account @%s [id %d]", bot.Self.UserName, bot.Self.ID)
 
 	return bot, nil
 }

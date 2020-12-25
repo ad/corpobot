@@ -20,22 +20,9 @@ func init() {
 }
 
 func (m *AdminPlugin) OnStart() {
-	plugin := &database.Plugin{
-		Name: "admin.AdminPlugin",
-		State: "enabled",
-	}
-
-	plugin, err := database.AddPluginIfNotExist(plugins.DB, plugin)
-	if err != nil {
-		dlog.Errorln("failed: " + err.Error())
-	}
-
-	if plugin.State != "enabled" {
-		dlog.Debugln("[AdminPlugin] Disabled")
+	if !plugins.CheckIfPluginDisabled("admin.AdminPlugin", "enabled") {
 		return
 	}
-
-	dlog.Debugln("[AdminPlugin] Started")
 
 	plugins.RegisterCommand("pluginlist", "...")
 	plugins.RegisterCommand("pluginenable", "...")

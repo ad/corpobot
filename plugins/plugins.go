@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"strings"
 
+	database "github.com/ad/corpobot/db"
 	dlog "github.com/amoghe/distillog"
 	tgbotapi "gopkg.in/telegram-bot-api.v4"
 	sql "github.com/lazada/sqle"
@@ -71,6 +72,27 @@ func EnablePlugin(plugin string) bool {
 		return true
 	}
 	return false
+}
+
+func CheckIfPluginDisabled(name, state string) (bool) {
+	plugin := &database.Plugin{
+		Name: name,
+		State: state,
+	}
+
+	plugin, err := database.AddPluginIfNotExist(DB, plugin)
+	if err != nil {
+		dlog.Errorln("failed: " + err.Error())
+	}
+
+	if plugin.State != "enabled" {
+		dlog.Debugln("[" + name + "] Disabled")
+		return false
+	}
+	
+	dlog.Debugln("[" + name + "] Started")
+
+	return true
 }
 
 // KeyOf ...

@@ -5,7 +5,6 @@ import (
 
 	"github.com/ad/corpobot/plugins"
 
-	database "github.com/ad/corpobot/db"
 	dlog "github.com/amoghe/distillog"
 	tgbotapi "gopkg.in/telegram-bot-api.v4"
 	telegram "github.com/ad/corpobot/telegram"
@@ -19,23 +18,9 @@ func init() {
 	plugins.RegisterPlugin(&MePlugin{})
 }
 func (m *MePlugin) OnStart() {
-	plugin := &database.Plugin{
-		Name: "me.MePlugin",
-		State: "enabled",
-	}
-
-	plugin, err := database.AddPluginIfNotExist(plugins.DB, plugin)
-	if err != nil {
-		dlog.Errorln("failed: " + err.Error())
-	}
-
-	if plugin.State != "enabled" {
-		dlog.Debugln("[MePlugin] Disabled")
+	if !plugins.CheckIfPluginDisabled("me.MePlugin", "enabled") {
 		return
 	}
-
-	
-	dlog.Debugln("[MePlugin] Started")
 
 	plugins.RegisterCommand("me", "...")
 }

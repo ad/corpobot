@@ -6,7 +6,6 @@ import (
 
 	"github.com/ad/corpobot/plugins"
 
-	database "github.com/ad/corpobot/db"
 	dlog "github.com/amoghe/distillog"
 	tgbotapi "gopkg.in/telegram-bot-api.v4"
 	telegram "github.com/ad/corpobot/telegram"
@@ -21,23 +20,9 @@ func init() {
 }
 
 func (m *HelpPlugin) OnStart() {
-	plugin := &database.Plugin{
-		Name: "help.HelpPlugin",
-		State: "enabled",
-	}
-
-	plugin, err := database.AddPluginIfNotExist(plugins.DB, plugin)
-	if err != nil {
-		dlog.Errorln("failed: " + err.Error())
-	}
-
-	if plugin.State != "enabled" {
-		dlog.Debugln("[HelpPlugin] Disabled")
+	if !plugins.CheckIfPluginDisabled("help.HelpPlugin", "enabled") {
 		return
 	}
-
-	
-	dlog.Debugln("[HelpPlugin] Started")
 
 	plugins.RegisterCommand("help", "Display this help")
 }
