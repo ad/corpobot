@@ -8,28 +8,28 @@ import (
 	tgbotapi "gopkg.in/telegram-bot-api.v4"
 )
 
-type StartPlugin struct {
+type Plugin struct {
 }
 
 func init() {
-	plugins.RegisterPlugin(&StartPlugin{})
+	plugins.RegisterPlugin(&Plugin{})
 }
 
-func (m *StartPlugin) OnStart() {
-	if !plugins.CheckIfPluginDisabled("start.StartPlugin", "enabled") {
+func (m *Plugin) OnStart() {
+	if !plugins.CheckIfPluginDisabled("start.Plugin", "enabled") {
 		return
 	}
 
 	plugins.RegisterCommand("start", "...")
 }
 
-func (m *StartPlugin) OnStop() {
-	dlog.Debugln("[StartPlugin] Stopped")
+func (m *Plugin) OnStop() {
+	dlog.Debugln("[start.Plugin] Stopped")
 
 	plugins.UnregisterCommand("start")
 }
 
-func (m *StartPlugin) Run(update *tgbotapi.Update) (bool, error) {
+func (m *Plugin) Run(update *tgbotapi.Update) (bool, error) {
 	if update.Message.Command() == "start" {
 		return true, telegram.Send(update.Message.Chat.ID, "Hello! Send /help")
 	}

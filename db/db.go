@@ -10,7 +10,8 @@ import (
 
 	dlog "github.com/amoghe/distillog"
 	sql "github.com/lazada/sqle"
-	_ "github.com/mattn/go-sqlite3"
+
+	_ "github.com/mattn/go-sqlite3" // Register some sql
 )
 
 // TelegramMessage ...

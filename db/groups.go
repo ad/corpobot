@@ -9,7 +9,8 @@ import (
 
 	dlog "github.com/amoghe/distillog"
 	sql "github.com/lazada/sqle"
-	_ "github.com/mattn/go-sqlite3"
+
+	_ "github.com/mattn/go-sqlite3" // Register some sql
 )
 
 // Group ...
@@ -54,7 +55,11 @@ func AddGroupIfNotExist(db *sql.DB, group *Group) (*Group, error) {
 		return nil, err
 	}
 
-	group.ID, _ = res.LastInsertId()
+	group.ID, err = res.LastInsertId()
+	if err != nil {
+		return nil, err
+	}
+
 	group.CreatedAt = time.Now()
 
 	dlog.Debugf("%s (%d) added at %s\n", group.Name, group.ID, group.CreatedAt)

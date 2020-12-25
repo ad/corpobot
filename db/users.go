@@ -9,7 +9,8 @@ import (
 
 	dlog "github.com/amoghe/distillog"
 	sql "github.com/lazada/sqle"
-	_ "github.com/mattn/go-sqlite3"
+
+	_ "github.com/mattn/go-sqlite3" // Register some sql
 )
 
 // User ...
@@ -61,7 +62,11 @@ func AddUserIfNotExist(db *sql.DB, user *User) (*User, error) {
 		return nil, err
 	}
 
-	user.ID, _ = res.LastInsertId()
+	user.ID, err = res.LastInsertId()
+	if err != nil {
+		return nil, err
+	}
+
 	user.CreatedAt = time.Now()
 
 	dlog.Debugf("%s (%d) added at %s\n", user.UserName, user.ID, user.CreatedAt)

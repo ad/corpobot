@@ -7,7 +7,8 @@ import (
 
 	dlog "github.com/amoghe/distillog"
 	sql "github.com/lazada/sqle"
-	_ "github.com/mattn/go-sqlite3"
+
+	_ "github.com/mattn/go-sqlite3" // Register some sql
 )
 
 // Groupchat ...
@@ -83,7 +84,11 @@ func AddGroupChatIfNotExist(db *sql.DB, groupchat *Groupchat) (*Groupchat, error
 		return nil, err
 	}
 
-	groupchat.ID, _ = res.LastInsertId()
+	groupchat.ID, err = res.LastInsertId()
+	if err != nil {
+		return nil, err
+	}
+
 	groupchat.CreatedAt = time.Now()
 
 	dlog.Debugf("%s (%d) added at %s\n", groupchat.Title, groupchat.ID, groupchat.CreatedAt)

@@ -47,9 +47,10 @@ func DisablePlugin(plugin string) bool {
 			dlog.Debugln("Can't disable " + plugin + ", odd")
 		}
 		return disabled
-	} else {
-		dlog.Debugln("Plugin '" + plugin + "' does not exist or is not loaded")
 	}
+
+	dlog.Debugln("Plugin '" + plugin + "' does not exist or is not loaded")
+
 	return exists
 }
 

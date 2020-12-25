@@ -8,7 +8,8 @@ import (
 
 	dlog "github.com/amoghe/distillog"
 	sql "github.com/lazada/sqle"
-	_ "github.com/mattn/go-sqlite3"
+
+	_ "github.com/mattn/go-sqlite3" // Register some sql
 )
 
 // User ...
@@ -45,10 +46,14 @@ func AddPluginIfNotExist(db *sql.DB, plugin *Plugin) (*Plugin, error) {
 		return nil, err
 	}
 
-	plugin.ID, _ = res.LastInsertId()
+	plugin.ID, err = res.LastInsertId()
+	if err != nil {
+		return nil, err
+	}
+
 	plugin.CreatedAt = time.Now()
 
-	dlog.Debugf("%s (%d) added at %s\n", plugin.Name, plugin.State, plugin.CreatedAt)
+	dlog.Debugf("%s (%s) added at %s\n", plugin.Name, plugin.State, plugin.CreatedAt)
 
 	return plugin, nil
 }

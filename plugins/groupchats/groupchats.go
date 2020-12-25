@@ -12,16 +12,16 @@ import (
 	tgbotapi "gopkg.in/telegram-bot-api.v4"
 )
 
-// GroupchatsPlugin ...
-type GroupchatsPlugin struct {
+// Plugin ...
+type Plugin struct {
 }
 
 func init() {
-	plugins.RegisterPlugin(&GroupchatsPlugin{})
+	plugins.RegisterPlugin(&Plugin{})
 }
 
-func (m *GroupchatsPlugin) OnStart() {
-	if !plugins.CheckIfPluginDisabled("groupchats.GroupchatsPlugin", "enabled") {
+func (m *Plugin) OnStart() {
+	if !plugins.CheckIfPluginDisabled("groupchats.Plugin", "enabled") {
 		return
 	}
 
@@ -29,14 +29,14 @@ func (m *GroupchatsPlugin) OnStart() {
 	plugins.RegisterCommand("groupchatsinvitegenerate", "...")
 }
 
-func (m *GroupchatsPlugin) OnStop() {
-	dlog.Debugln("[GroupchatsPlugin] Stopped")
+func (m *Plugin) OnStop() {
+	dlog.Debugln("[groupchats.Plugin] Stopped")
 
 	plugins.UnregisterCommand("groupchatlist")
 	plugins.UnregisterCommand("groupchatsinvitegenerate")
 }
 
-func (m *GroupchatsPlugin) Run(update *tgbotapi.Update) (bool, error) {
+func (m *Plugin) Run(update *tgbotapi.Update) (bool, error) {
 	if update.Message.Command() == "groupchatlist" {
 		// TODO: check user rights
 
@@ -78,15 +78,12 @@ func (m *GroupchatsPlugin) Run(update *tgbotapi.Update) (bool, error) {
 			TelegramID: telegramID,
 		}
 
-		// if update.Message.Chat.InviteLink == "" {
 		inviteLink, err := plugins.Bot.GetInviteLink(tgbotapi.ChatConfig{ChatID: groupchat.TelegramID})
 		if err != nil {
 			return true, telegram.Send(update.Message.Chat.ID, "failed: "+err.Error())
-		} else {
-			groupchat.InviteLink = inviteLink
 		}
 
-		// }
+		groupchat.InviteLink = inviteLink
 		if groupchat.InviteLink != "" {
 			_, err := database.UpdateGroupChatInviteLink(plugins.DB, groupchat)
 			if err != nil {

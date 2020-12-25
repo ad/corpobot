@@ -11,28 +11,28 @@ import (
 	tgbotapi "gopkg.in/telegram-bot-api.v4"
 )
 
-type HelpPlugin struct {
+type Plugin struct {
 }
 
 func init() {
-	plugins.RegisterPlugin(&HelpPlugin{})
+	plugins.RegisterPlugin(&Plugin{})
 }
 
-func (m *HelpPlugin) OnStart() {
-	if !plugins.CheckIfPluginDisabled("help.HelpPlugin", "enabled") {
+func (m *Plugin) OnStart() {
+	if !plugins.CheckIfPluginDisabled("help.Plugin", "enabled") {
 		return
 	}
 
 	plugins.RegisterCommand("help", "Display this help")
 }
 
-func (m *HelpPlugin) OnStop() {
-	dlog.Debugln("[HelpPlugin] Stopped")
+func (m *Plugin) OnStop() {
+	dlog.Debugln("[help.Plugin] Stopped")
 
 	plugins.UnregisterCommand("help")
 }
 
-func (m *HelpPlugin) Run(update *tgbotapi.Update) (bool, error) {
+func (m *Plugin) Run(update *tgbotapi.Update) (bool, error) {
 	if update.Message.Command() == "help" {
 		var mk []string
 

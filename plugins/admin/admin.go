@@ -11,15 +11,15 @@ import (
 	tgbotapi "gopkg.in/telegram-bot-api.v4"
 )
 
-type AdminPlugin struct {
+type Plugin struct {
 }
 
 func init() {
-	plugins.RegisterPlugin(&AdminPlugin{})
+	plugins.RegisterPlugin(&Plugin{})
 }
 
-func (m *AdminPlugin) OnStart() {
-	if !plugins.CheckIfPluginDisabled("admin.AdminPlugin", "enabled") {
+func (m *Plugin) OnStart() {
+	if !plugins.CheckIfPluginDisabled("admin.Plugin", "enabled") {
 		return
 	}
 
@@ -28,15 +28,15 @@ func (m *AdminPlugin) OnStart() {
 	plugins.RegisterCommand("plugindisable", "...")
 }
 
-func (m *AdminPlugin) OnStop() {
-	dlog.Debugln("[AdminPlugin] Stopped")
+func (m *Plugin) OnStop() {
+	dlog.Debugln("[admin.Plugin] Stopped")
 
 	plugins.UnregisterCommand("pluginlist")
 	plugins.UnregisterCommand("pluginenable")
 	plugins.UnregisterCommand("plugindisable")
 }
 
-func (m *AdminPlugin) Run(update *tgbotapi.Update) (bool, error) {
+func (m *Plugin) Run(update *tgbotapi.Update) (bool, error) {
 	if update.Message.Command() == "pluginlist" {
 		return true, ListPlugins(update)
 	}
