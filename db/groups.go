@@ -75,7 +75,7 @@ func GetGroups(db *sql.DB, states []string) (groups []*Group, err error) {
 	}
 
 	var returnModel Group
-	sql := `select
+	sql := `SELECT
 	*
 FROM
 	groups

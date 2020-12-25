@@ -20,6 +20,21 @@ func init() {
 }
 
 func (m *UsersPlugin) OnStart() {
+	plugin := &database.Plugin{
+		Name: "users.UsersPlugin",
+		State: "enabled",
+	}
+
+	plugin, err := database.AddPluginIfNotExist(plugins.DB, plugin)
+	if err != nil {
+		dlog.Errorln("failed: " + err.Error())
+	}
+
+	if plugin.State != "enabled" {
+		dlog.Debugln("[UsersPlugin] Disabled")
+		return
+	}
+
 	dlog.Debugln("[UsersPlugin] Started")
 
 	plugins.RegisterCommand("userlist", "...")

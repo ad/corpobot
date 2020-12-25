@@ -52,7 +52,6 @@ func InitTelegram(token, proxyHost, proxyPort, proxyUser, proxyPassword string, 
 // ProcessTelegramMessages ...
 func ProcessTelegramMessages(db *sql.DB, bot *tgbotapi.BotAPI, updates tgbotapi.UpdatesChannel) {
 	plugins.Bot = bot
-	plugins.DB = db
 
 	for update := range updates {
 		updateGroupChat(db, update.Message)

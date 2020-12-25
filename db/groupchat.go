@@ -36,7 +36,7 @@ func GetGroupchats(db *sql.DB, states []string) (groupchats []*Groupchat, err er
 	}
 
 	var returnModel Groupchat
-	sql := `select
+	sql := `SELECT
 	*
 FROM
 	groupchats

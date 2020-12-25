@@ -12,6 +12,7 @@ import (
 	tgbotapi "gopkg.in/telegram-bot-api.v4"
 )
 
+// GroupchatsPlugin ...
 type GroupchatsPlugin struct {
 
 }
@@ -21,6 +22,22 @@ func init() {
 }
 
 func (m *GroupchatsPlugin) OnStart() {
+	plugin := &database.Plugin{
+		Name: "groupchats.GroupchatsPlugin",
+		State: "enabled",
+	}
+
+	plugin, err := database.AddPluginIfNotExist(plugins.DB, plugin)
+	if err != nil {
+		dlog.Errorln("failed: " + err.Error())
+	}
+
+	if plugin.State != "enabled" {
+		dlog.Debugln("[GroupchatsPlugin] Disabled")
+		return
+	}
+
+	
 	dlog.Debugln("[GroupchatsPlugin] Started")
 
 	plugins.RegisterCommand("groupchatlist", "...")

@@ -20,6 +20,22 @@ func init() {
 }
 
 func (m *GroupsPlugin) OnStart() {
+	plugin := &database.Plugin{
+		Name: "groups.GroupsPlugin",
+		State: "enabled",
+	}
+
+	plugin, err := database.AddPluginIfNotExist(plugins.DB, plugin)
+	if err != nil {
+		dlog.Errorln("failed: " + err.Error())
+	}
+
+	if plugin.State != "enabled" {
+		dlog.Debugln("[GroupsPlugin] Disabled")
+		return
+	}
+
+	
 	dlog.Debugln("[GroupsPlugin] Started")
 
 	plugins.RegisterCommand("grouplist", "...")

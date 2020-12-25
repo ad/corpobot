@@ -42,6 +42,7 @@ func InitDB() (*sql.DB, error) {
 		"telegram_id" INTEGER NOT NULL,
 		"message" TEXT DEFAULT "",
 		"created_at" timestamp DEFAULT CURRENT_TIMESTAMP,
+		"updated_at" timestamp DEFAULT CURRENT_TIMESTAMP,
 		CONSTRAINT "telegram_messages_user_id" FOREIGN KEY ("telegram_id") REFERENCES "users" ("telegram_id")
 	);`)
 	if err != nil {
@@ -57,8 +58,15 @@ func InitDB() (*sql.DB, error) {
 		"role" VARCHAR(32) NOT NULL DEFAULT "new",
 		"is_bot" bool NOT NULL,
 		"created_at" timestamp DEFAULT CURRENT_TIMESTAMP,
+		"updated_at" timestamp DEFAULT CURRENT_TIMESTAMP,
 		CONSTRAINT "users_telegram_id" UNIQUE ("telegram_id") ON CONFLICT IGNORE
-	  );`)
+	  );
+
+		CREATE TRIGGER IF NOT EXISTS users_updated_at_Trigger
+		AFTER UPDATE On users
+		BEGIN
+		   UPDATE users SET updated_at = STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW') WHERE id = NEW.id;
+		END;`)
 	if err != nil {
 		dlog.Errorf("%s", err)
 	}
@@ -68,8 +76,15 @@ func InitDB() (*sql.DB, error) {
 		"name" VARCHAR(32) NOT NULL,
 		"state" VARCHAR(32) NOT NULL,
 		"created_at" timestamp DEFAULT CURRENT_TIMESTAMP,
+		"updated_at" timestamp DEFAULT CURRENT_TIMESTAMP,
 		CONSTRAINT "groups_name" UNIQUE ("name") ON CONFLICT IGNORE
-	  );`)
+	  );
+
+		CREATE TRIGGER IF NOT EXISTS groups_updated_at_Trigger
+		AFTER UPDATE On groups
+		BEGIN
+		   UPDATE groups SET updated_at = STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW') WHERE id = NEW.id;
+		END;`)
 	if err != nil {
 		dlog.Errorf("%s", err)
 	}
@@ -81,8 +96,15 @@ func InitDB() (*sql.DB, error) {
 		"invite_link" TEXT DEFAULT "",
 		"state" VARCHAR(32) NOT NULL,
 		"created_at" timestamp DEFAULT CURRENT_TIMESTAMP,
+		"updated_at" timestamp DEFAULT CURRENT_TIMESTAMP,
 		CONSTRAINT "groupchats_telegram_id" UNIQUE ("telegram_id") ON CONFLICT IGNORE
-	  );`)
+	  );
+
+		CREATE TRIGGER IF NOT EXISTS groupchats_updated_at_Trigger
+		AFTER UPDATE On groupchats
+		BEGIN
+		   UPDATE groupchats SET updated_at = STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW') WHERE id = NEW.id;
+		END;`)
 	if err != nil {
 		dlog.Errorf("%s", err)
 	}
@@ -90,10 +112,17 @@ func InitDB() (*sql.DB, error) {
 	err = ExecSQL(db, `CREATE TABLE IF NOT EXISTS "plugins" (
 		"id" INTEGER PRIMARY KEY AUTOINCREMENT,
 		"name" text NOT NULL,
-		"is_enabled" bool NOT NULL,
+		"state" VARCHAR(32) NOT NULL DEFAULT "enabled",
 		"created_at" timestamp DEFAULT CURRENT_TIMESTAMP,
+		"updated_at" timestamp DEFAULT CURRENT_TIMESTAMP,
 		CONSTRAINT "plugins_name" UNIQUE ("name") ON CONFLICT IGNORE
-	  );`)
+	  );
+
+		CREATE TRIGGER IF NOT EXISTS plugins_updated_at_Trigger
+		AFTER UPDATE On plugins
+		BEGIN
+		   UPDATE plugins SET updated_at = STRFTIME('%Y-%m-%d %H:%M:%f', 'NOW') WHERE id = NEW.id;
+		END;`)
 	if err != nil {
 		dlog.Errorf("%s", err)
 	}

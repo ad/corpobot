@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"time"
 
 	config "github.com/ad/corpobot/config"
 	database "github.com/ad/corpobot/db"
@@ -46,6 +47,7 @@ func main() {
 		return
 	}
 	defer func() { _ = db.Close() }()
+	plugins.DB = db
 
 	// Init Telegram
 	bot, err = telegram.InitTelegram(config.TelegramToken, config.TelegramProxyHost, config.TelegramProxyPort, config.TelegramProxyUser, config.TelegramProxyPassword, config.TelegramDebug)
@@ -60,9 +62,16 @@ func main() {
 		log.Fatalf("[INIT] [Failed to init Telegram updates chan: %v]", err)
 	}
 
-	// Bootstrapper for plugins
-	for _, d := range plugins.Plugins {
-		go d.OnStart()
+	dlog.Infoln("Waiting for plugins...")
+	for {
+		if plugins.DB != nil && plugins.DB.Ping() == nil {
+			// Bootstrapper for plugins
+			for _, d := range plugins.Plugins {
+				go d.OnStart()
+			}
+			break
+		}
+		time.Sleep(time.Second)
 	}
 
 	telegram.ProcessTelegramMessages(db, bot, updates)

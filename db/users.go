@@ -83,7 +83,7 @@ func GetUsers(db *sql.DB, roles []string) (users []*User, err error) {
 	}
 
 	var returnModel User
-	sql := `select
+	sql := `SELECT
 	*
 FROM
 	users
