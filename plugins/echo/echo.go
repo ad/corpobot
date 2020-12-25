@@ -1,40 +1,37 @@
 package echo
 
 import (
-	// "strconv"
-
 	"github.com/ad/corpobot/plugins"
 
 	dlog "github.com/amoghe/distillog"
 	tgbotapi "gopkg.in/telegram-bot-api.v4"
+	telegram "github.com/ad/corpobot/telegram"
 )
 
 type EchoPlugin struct {
+
 }
 
 func init() {
 	plugins.RegisterPlugin(&EchoPlugin{})
 }
+
 func (m *EchoPlugin) OnStart() {
 	dlog.Debugln("[EchoPlugin] Started")
-	plugins.RegisterCommand("echo", "...")
+
+	plugins.RegisterCommand("echo", "example plugin")
 }
+
 func (m *EchoPlugin) OnStop() {
 	dlog.Debugln("[EchoPlugin] Stopped")
+
 	plugins.UnregisterCommand("echo")
 }
 
-func (m *EchoPlugin) Run(update *tgbotapi.Update) {
+func (m *EchoPlugin) Run(update *tgbotapi.Update) (bool, error) {
 	if update.Message.Command() == "echo" {
-		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
-		msg.ParseMode = "Markdown"
-		msg.Text = update.Message.Text
-		msg.DisableWebPagePreview = true
-		msg.ReplyToMessageID = update.Message.MessageID
-
-		_, err11 := plugins.Bot.Send(msg)
-		if err11 != nil {
-			dlog.Errorln(err11)
-		}
+		return true, telegram.Send(update.Message.Chat.ID, update.Message.Text + " " + update.Message.CommandArguments())
 	}
+
+	return false, nil
 }

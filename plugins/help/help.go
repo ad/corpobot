@@ -8,9 +8,11 @@ import (
 
 	dlog "github.com/amoghe/distillog"
 	tgbotapi "gopkg.in/telegram-bot-api.v4"
+	telegram "github.com/ad/corpobot/telegram"
 )
 
 type HelpPlugin struct {
+
 }
 
 func init() {
@@ -19,40 +21,36 @@ func init() {
 
 func (m *HelpPlugin) OnStart() {
 	dlog.Debugln("[HelpPlugin] Started")
+
 	plugins.RegisterCommand("help", "Display this help")
 }
 
 func (m *HelpPlugin) OnStop() {
-	plugins.UnregisterCommand("help")
+	dlog.Debugln("[HelpPlugin] Stopped")
 
+	plugins.UnregisterCommand("help")
 }
 
-func (m *HelpPlugin) Run(update *tgbotapi.Update) {
-	dlog.Debugln("[HelpPlugin] %s", update)
-
+func (m *HelpPlugin) Run(update *tgbotapi.Update) (bool, error) {
 	if update.Message.Command() == "help" {
-		mk := make([]string, len(plugins.Commands))
-		i := 0
-		for k, _ := range plugins.Commands {
-			mk[i] = k
-			i++
+		var mk []string
+		
+		for k := range plugins.Commands {
+			mk = append(mk, k)
 		}
+
 		sort.Strings(mk)
 		var buffer bytes.Buffer
 
 		for _, v := range mk {
-			buffer.WriteString("/" + v + " - " + plugins.Commands[v] + "\n")
+			_, err := buffer.WriteString("/" + v + " - " + plugins.Commands[v] + "\n")
+			if err != nil {
+				return true, err
+			}
 		}
 
-		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
-		msg.ParseMode = "Markdown"
-		msg.Text = "Those are my commands: \n"+buffer.String()
-		msg.DisableWebPagePreview = true
-		msg.ReplyToMessageID = update.Message.MessageID
-
-		_, err11 := plugins.Bot.Send(msg)
-		if err11 != nil {
-			dlog.Errorln(err11)
-		}
+		return true, telegram.Send(update.Message.Chat.ID, "Those are my commands: \n"+buffer.String())
 	}
+
+	return false, nil
 }

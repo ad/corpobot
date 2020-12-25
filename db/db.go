@@ -5,64 +5,25 @@ import (
 	"fmt"
 	"reflect"
 	"time"
+	// "strings"
 
 	dlog "github.com/amoghe/distillog"
 	sql "github.com/lazada/sqle"
-	_ "github.com/mattn/go-sqlite3" // ...
-)
-
-// AlreadyExists ...
-const (
-	AlreadyExists = "already exists"
-	UserNotFound  = "user not found"
-	RepoNotFound  = "repo not found"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 // TelegramMessage ...
 type TelegramMessage struct {
-	ID       int
-	UserID   int
-	UserName string
-	Message  string
-	Date     time.Time
+	ID       	int
+	TelegramID  int
+	FirstName 	string
+	LastName 	string
+	UserName 	string
+	Message  	string
+	IsBot  		bool
+	Date     	time.Time
 }
 
-// // GithubUser ...
-// type GithubUser struct {
-// 	ID             int64     `sql:"id"`
-// 	Name           string    `sql:"name"`
-// 	UserName       string    `sql:"user_name"`
-// 	TelegramUserID string    `sql:"telegram_user_id"`
-// 	Token          string    `sql:"token"`
-// 	CreatedAt      time.Time `sql:"created_at"`
-// }
-
-// // GithubRepo ...
-// type GithubRepo struct {
-// 	ID        int64     `sql:"id"`
-// 	Name      string    `sql:"name"`
-// 	RepoName  string    `sql:"repo_name"`
-// 	CreatedAt time.Time `sql:"created_at"`
-// }
-
-// // UserRepo ...
-// type UserRepo struct {
-// 	ID        int64     `sql:"id"`
-// 	UserID    int64     `sql:"user_id"`
-// 	RepoID    int64     `sql:"repo_id"`
-// 	CreatedAt time.Time `sql:"created_at"`
-// 	UpdatedAt time.Time `sql:"updated_at"`
-// }
-
-// // UsersReposResult ...
-// type UsersReposResult struct {
-// 	UserID         int64
-// 	RepoID         int64
-// 	TelegramUserID string
-// 	Token          string
-// 	RepoName       string
-// 	UpdatedAt      time.Time
-// }
 
 // InitDB ...
 func InitDB() (*sql.DB, error) {
@@ -78,48 +39,60 @@ func InitDB() (*sql.DB, error) {
 
 	err = ExecSQL(db, `CREATE TABLE IF NOT EXISTS telegram_messages (
 		"id" INTEGER PRIMARY KEY AUTOINCREMENT,
-		"user_id" INTEGER NOT NULL,
-		"user_name" VARCHAR(32) DEFAULT "",
+		"telegram_id" INTEGER NOT NULL,
 		"message" TEXT DEFAULT "",
-		"created_at" timestamp DEFAULT CURRENT_TIMESTAMP
+		"created_at" timestamp DEFAULT CURRENT_TIMESTAMP,
+		CONSTRAINT "telegram_messages_user_id" FOREIGN KEY ("telegram_id") REFERENCES "users" ("telegram_id")
 	);`)
 	if err != nil {
 		dlog.Errorf("%s", err)
 	}
 
-	err = ExecSQL(db, `CREATE TABLE IF NOT EXISTS "github_users" (
+	err = ExecSQL(db, `CREATE TABLE IF NOT EXISTS "users" (
 		"id" INTEGER PRIMARY KEY AUTOINCREMENT,
-		"name" text NOT NULL,
-		"user_name" text NOT NULL,
-		"token" text NOT NULL,
-		"telegram_user_id" INTEGER NOT NULL,
+		"first_name" VARCHAR(32) NOT NULL,
+		"last_name" VARCHAR(32) NOT NULL,
+		"user_name" VARCHAR(32) NOT NULL,
+		"telegram_id" INTEGER NOT NULL,
+		"role" VARCHAR(32) NOT NULL DEFAULT "new",
+		"is_bot" bool NOT NULL,
 		"created_at" timestamp DEFAULT CURRENT_TIMESTAMP,
-		CONSTRAINT "github_users_user_name" UNIQUE ("user_name") ON CONFLICT IGNORE
+		CONSTRAINT "users_telegram_id" UNIQUE ("telegram_id") ON CONFLICT IGNORE
 	  );`)
 	if err != nil {
 		dlog.Errorf("%s", err)
 	}
 
-	err = ExecSQL(db, `CREATE TABLE IF NOT EXISTS "github_repos" (
+	err = ExecSQL(db, `CREATE TABLE IF NOT EXISTS "groups" (
 		"id" INTEGER PRIMARY KEY AUTOINCREMENT,
-		"name" text NOT NULL,
-		"repo_name" text NOT NULL,
+		"name" VARCHAR(32) NOT NULL,
+		"state" VARCHAR(32) NOT NULL,
 		"created_at" timestamp DEFAULT CURRENT_TIMESTAMP,
-		CONSTRAINT "github_repos_repo_name" UNIQUE ("repo_name") ON CONFLICT IGNORE
+		CONSTRAINT "groups_name" UNIQUE ("name") ON CONFLICT IGNORE
 	  );`)
 	if err != nil {
 		dlog.Errorf("%s", err)
 	}
 
-	err = ExecSQL(db, `CREATE TABLE IF NOT EXISTS "users_repos" (
+	err = ExecSQL(db, `CREATE TABLE IF NOT EXISTS "groupchats" (
 		"id" INTEGER PRIMARY KEY AUTOINCREMENT,
-		"user_id" INTEGER NOT NULL,
-		"repo_id" INTEGER NOT NULL,
+		"title" TEXT DEFAULT "",
+		"telegram_id" INTEGER NOT NULL,
+		"invite_link" TEXT DEFAULT "",
+		"state" VARCHAR(32) NOT NULL,
 		"created_at" timestamp DEFAULT CURRENT_TIMESTAMP,
-		"updated_at" timestamp,
-		CONSTRAINT "repos_user_id" FOREIGN KEY ("user_id") REFERENCES "github_users" ("id"),
-		CONSTRAINT "repos_repo_id" FOREIGN KEY ("repo_id") REFERENCES "github_repos" ("id"),
-		CONSTRAINT "repos_repo_id_user_id" UNIQUE ("user_id", "repo_id") ON CONFLICT IGNORE
+		CONSTRAINT "groupchats_telegram_id" UNIQUE ("telegram_id") ON CONFLICT IGNORE
+	  );`)
+	if err != nil {
+		dlog.Errorf("%s", err)
+	}
+
+	err = ExecSQL(db, `CREATE TABLE IF NOT EXISTS "plugins" (
+		"id" INTEGER PRIMARY KEY AUTOINCREMENT,
+		"name" text NOT NULL,
+		"is_enabled" bool NOT NULL,
+		"created_at" timestamp DEFAULT CURRENT_TIMESTAMP,
+		CONSTRAINT "plugins_name" UNIQUE ("name") ON CONFLICT IGNORE
 	  );`)
 	if err != nil {
 		dlog.Errorf("%s", err)
@@ -176,224 +149,30 @@ func QuerySQLList(db *sql.DB, returnModel interface{}, sql string, args ...inter
 	return result, nil
 }
 
-// // AddUserIfNotExist ...
-// func AddUserIfNotExist(db *sql.DB, user *GithubUser) (*GithubUser, error) {
-// 	var returnModel GithubUser
-
-// 	result, err := QuerySQLObject(db, returnModel, `SELECT * FROM github_users WHERE user_name = ?;`, user.UserName)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	if returnModel, ok := result.Interface().(*GithubUser); ok && returnModel.UserName != "" {
-// 		// dlog.Debugf("already exists: %#v", returnModel)
-// 		return returnModel, fmt.Errorf(AlreadyExists)
-// 	}
-
-// 	res, err := db.Exec(
-// 		"INSERT INTO github_users (name, user_name, token, telegram_user_id) VALUES (?, ?, ?, ?);",
-// 		user.Name,
-// 		user.UserName,
-// 		user.Token,
-// 		user.TelegramUserID,
-// 	)
-
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	user.ID, _ = res.LastInsertId()
-// 	user.CreatedAt = time.Now()
-
-// 	dlog.Debugf("%s (%d) added at %s\n", user.UserName, user.ID, user.CreatedAt)
-
-// 	return user, nil
-// }
-
-// // AddRepoIfNotExist ...
-// func AddRepoIfNotExist(db *sql.DB, repo *GithubRepo) (*GithubRepo, error) {
-// 	var returnModel GithubRepo
-
-// 	result, err := QuerySQLObject(db, returnModel, `SELECT * FROM github_repos WHERE repo_name = ?;`, repo.RepoName)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	if returnModel, ok := result.Interface().(*GithubRepo); ok && returnModel.RepoName != "" {
-// 		// dlog.Debugf("already exists: %#v", returnModel)
-// 		return returnModel, fmt.Errorf(AlreadyExists)
-// 	}
-// 	res, err := db.Exec(
-// 		"INSERT INTO github_repos (name, repo_name) VALUES (?, ?);",
-// 		repo.Name,
-// 		repo.RepoName,
-// 	)
-
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	repo.ID, _ = res.LastInsertId()
-// 	repo.CreatedAt = time.Now()
-
-// 	dlog.Debugf("%s (%d) added at %s\n", repo.RepoName, repo.ID, repo.CreatedAt)
-
-// 	return repo, nil
-// }
-
-// // AddRepoLinkIfNotExist ...
-// func AddRepoLinkIfNotExist(db *sql.DB, user *GithubUser, repo *GithubRepo, updatedAt time.Time) error {
-// 	var returnModel UserRepo
-
-// 	result, err := QuerySQLObject(db, returnModel, `SELECT * FROM users_repos WHERE user_id = ? AND repo_id = ?;`, user.ID, repo.ID)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	if returnModel, ok := result.Interface().(*UserRepo); ok && returnModel.UserID > 0 && returnModel.RepoID > 0 {
-// 		// dlog.Debugf("already exists: %#v", returnModel)
-// 		return fmt.Errorf(AlreadyExists)
-// 	}
-
-// 	res, err := db.Exec(
-// 		"INSERT INTO users_repos (user_id, repo_id, updated_at) VALUES (?, ?, ?);",
-// 		user.ID,
-// 		repo.ID,
-// 		updatedAt,
-// 	)
-
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	id, _ := res.LastInsertId()
-
-// 	dlog.Debugf("link %s <-> %s (%d) added at %s\n", user.Name, repo.RepoName, id, time.Now())
-
-// 	return nil
-// }
-
 // StoreTelegramMessage ...
-func StoreTelegramMessage(db *sql.DB, message TelegramMessage) error {
-	_, err := db.Exec(
-		"INSERT INTO telegram_messages (user_id, user_name, message, created_at) VALUES (?, ?, ?, ?);",
-		message.UserID,
-		message.UserName,
+func StoreTelegramMessage(db *sql.DB, message *TelegramMessage) error {
+	user := &User{
+		TelegramID: message.TelegramID,
+		FirstName: 	message.FirstName,
+		LastName: 	message.LastName,
+		UserName: 	message.UserName,
+		IsBot: 		message.IsBot,
+	}
+
+	_, err := AddUserIfNotExist(db, user)
+	if err != nil && err.Error() != UserAlreadyExists {
+		return err
+	}
+
+	_, err2 := db.Exec(
+		"INSERT INTO telegram_messages (telegram_id, message, created_at) VALUES (?, ?, ?);",
+		message.TelegramID,
 		message.Message,
 		message.Date)
 
-	if err != nil {
-		return err
+	if err2 != nil {
+		return err2
 	}
 
 	return nil
 }
-
-// // UpdateUserRepoLink ...
-// func UpdateUserRepoLink(db *sql.DB, userRepoResult *UsersReposResult) error {
-// 	_, err := db.Exec(
-// 		"UPDATE users_repos SET updated_at = ? WHERE user_id = ? AND repo_id = ?;",
-// 		userRepoResult.UpdatedAt,
-// 		userRepoResult.UserID,
-// 		userRepoResult.RepoID)
-
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	return nil
-// }
-
-// // GetUserRepos ...
-// func GetUserRepos(db *sql.DB) (usersRepos []*UsersReposResult, err error) {
-// 	var returnModel UsersReposResult
-// 	sql := `select
-// 	users_repos.user_id as user_id,
-// 	users_repos.repo_id as repo_id,
-// 	github_users.telegram_user_id as telegram_user_id,
-// 	github_users.token as token,
-// 	github_repos.repo_name as repo_name,
-// 	users_repos.updated_at as updated_at
-// FROM
-// 	github_repos
-// 	INNER JOIN users_repos ON github_repos.id = users_repos.repo_id
-// 	INNER JOIN github_users ON github_users.id = users_repos.user_id
-// WHERE
-// 	users_repos.updated_at < DATETIME('now',  '-15 minutes');`
-
-// 	result, err := QuerySQLList(db, returnModel, sql)
-// 	if err != nil {
-// 		return usersRepos, err
-// 	}
-// 	for _, item := range result {
-// 		if returnModel, ok := item.Interface().(*UsersReposResult); ok {
-// 			usersRepos = append(usersRepos, returnModel)
-// 		}
-// 	}
-
-// 	return usersRepos, err
-// }
-
-// // GetUsers ...
-// func GetUsers(db *sql.DB) (users []*GithubUser, err error) {
-// 	var returnModel GithubUser
-// 	sql := `select
-// 	*
-// FROM
-// 	github_users;`
-
-// 	result, err := QuerySQLList(db, returnModel, sql)
-// 	if err != nil {
-// 		return users, err
-// 	}
-// 	for _, item := range result {
-// 		if returnModel, ok := item.Interface().(*GithubUser); ok {
-// 			users = append(users, returnModel)
-// 		}
-// 	}
-
-// 	return users, err
-// }
-
-// // GetGithubUserFromDB ...
-// func GetGithubUserFromDB(db *sql.DB, id string) (*GithubUser, error) {
-// 	var returnModel GithubUser
-
-// 	result, err := QuerySQLObject(db, returnModel, `SELECT * FROM github_users WHERE telegram_user_id = ?;`, id)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	if returnModel, ok := result.Interface().(*GithubUser); ok && returnModel.UserName != "" {
-// 		return returnModel, nil
-// 	}
-
-// 	return nil, fmt.Errorf(UserNotFound)
-// }
-
-// // GetGithubRepoByNameFromDB ...
-// func GetGithubRepoByNameFromDB(db *sql.DB, repo_name string) (*GithubRepo, error) {
-// 	var returnModel GithubRepo
-
-// 	result, err := QuerySQLObject(db, returnModel, `SELECT * FROM github_repos WHERE repo_name = ?;`, repo_name)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	if returnModel, ok := result.Interface().(*GithubRepo); ok && returnModel.RepoName != "" {
-// 		return returnModel, nil
-// 	}
-
-// 	return nil, fmt.Errorf(RepoNotFound)
-// }
-
-// // DeleteRepoUserLinkDB ...
-// func DeleteRepoUserLinkDB(db *sql.DB, user *GithubUser, repo *GithubRepo) error {
-// 	_, err := db.Exec(
-// 		"DELETE FROM users_repos WHERE user_id = ? AND repo_id = ?;",
-// 		user.ID,
-// 		repo.ID)
-
-// 	if err != nil {
-// 		return err
-// 	}
-
-// 	return nil
-// }

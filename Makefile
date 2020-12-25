@@ -2,8 +2,6 @@ IMG = github.com/ad/corpobot
 TAG = latest
 CWD = $(shell pwd)
 
-CORPOBOT_TELEGRAM_TOKEN = 1481180087:AAE5AKUXxpqzn2_Hy6-hKU7k4rPqW-bo2UU
-
 build: #test 
 	@touch db/corpobot.db
 	@docker build -t $(IMG):$(TAG) .

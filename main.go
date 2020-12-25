@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	// "strconv"
 
 	config "github.com/ad/corpobot/config"
 	database "github.com/ad/corpobot/db"
@@ -13,9 +12,14 @@ import (
 	sql "github.com/lazada/sqle"
 	tgbotapi "gopkg.in/telegram-bot-api.v4"
 
-	_ "github.com/ad/corpobot/plugins/help"
-	_ "github.com/ad/corpobot/plugins/start"
+	_ "github.com/ad/corpobot/plugins/admin"
 	_ "github.com/ad/corpobot/plugins/echo"
+	_ "github.com/ad/corpobot/plugins/groups"
+	_ "github.com/ad/corpobot/plugins/groupchats"
+	_ "github.com/ad/corpobot/plugins/help"
+	_ "github.com/ad/corpobot/plugins/me"
+	_ "github.com/ad/corpobot/plugins/start"
+	_ "github.com/ad/corpobot/plugins/users"
 )
 
 const version = "0.0.1"
@@ -23,8 +27,8 @@ const version = "0.0.1"
 var (
 	err error
 
-	bot    *tgbotapi.BotAPI
-	db     *sql.DB
+	bot *tgbotapi.BotAPI
+	db  *sql.DB
 )
 
 func main() {
@@ -60,7 +64,6 @@ func main() {
 	for _, d := range plugins.Plugins {
 		go d.OnStart()
 	}
-	// log.Println(strconv.Itoa(len(plugins.Plugins)) + " plugins loaded")
 
 	telegram.ProcessTelegramMessages(db, bot, updates)
 }

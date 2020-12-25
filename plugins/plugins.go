@@ -1,20 +1,17 @@
 package plugins
 
-// type Plugin interface {
-// 	GetCommand() string
-// 	RunCommand(bot *tgbotapi.BotAPI, message *tgbotapi.Message) bool
-// }
-
 import (
 	"reflect"
 	"strings"
 
 	dlog "github.com/amoghe/distillog"
 	tgbotapi "gopkg.in/telegram-bot-api.v4"
+	sql "github.com/lazada/sqle"
 )
 
+// TelegramPlugin ...
 type TelegramPlugin interface {
-	Run(update *tgbotapi.Update)
+	Run(update *tgbotapi.Update) (bool, error)
 	OnStart()
 	OnStop()
 }
@@ -24,6 +21,7 @@ var Plugins = map[string]TelegramPlugin{}
 var DisabledPlugins = map[string]TelegramPlugin{}
 var Commands = make(map[string]string)
 var Bot *tgbotapi.BotAPI
+var DB *sql.DB
 
 // Register a Plugin
 func RegisterPlugin(p TelegramPlugin) {
@@ -75,6 +73,7 @@ func EnablePlugin(plugin string) bool {
 	return false
 }
 
+// KeyOf ...
 func KeyOf(p TelegramPlugin) string {
 	return strings.TrimPrefix(reflect.TypeOf(p).String(), "*")
 }
