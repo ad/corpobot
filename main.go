@@ -15,8 +15,8 @@ import (
 
 	_ "github.com/ad/corpobot/plugins/admin"
 	_ "github.com/ad/corpobot/plugins/echo"
-	_ "github.com/ad/corpobot/plugins/groups"
 	_ "github.com/ad/corpobot/plugins/groupchats"
+	_ "github.com/ad/corpobot/plugins/groups"
 	_ "github.com/ad/corpobot/plugins/help"
 	_ "github.com/ad/corpobot/plugins/me"
 	_ "github.com/ad/corpobot/plugins/start"

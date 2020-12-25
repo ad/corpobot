@@ -13,14 +13,14 @@ import (
 
 // User ...
 type Plugin struct {
-	ID         int64     `sql:"id"`
-	Name       string    `sql:"name"`
-	State	   string    `sql:"state"`
-	CreatedAt  time.Time `sql:"created_at"`
+	ID        int64     `sql:"id"`
+	Name      string    `sql:"name"`
+	State     string    `sql:"state"`
+	CreatedAt time.Time `sql:"created_at"`
 }
 
 func (p *Plugin) String() string {
-    return fmt.Sprintf("%s — %s", p.Name, p.State)
+	return fmt.Sprintf("%s — %s", p.Name, p.State)
 }
 
 // AddPluginIfNotExist ...
@@ -41,7 +41,6 @@ func AddPluginIfNotExist(db *sql.DB, plugin *Plugin) (*Plugin, error) {
 		plugin.Name,
 		plugin.State,
 	)
-
 	if err != nil {
 		return nil, err
 	}
@@ -61,13 +60,11 @@ func UpdatePluginState(db *sql.DB, plugin *Plugin) (int64, error) {
 		plugin.State,
 		plugin.Name,
 		plugin.State)
-
 	if err != nil {
 		return -1, err
 	}
 
 	rows, err := result.RowsAffected()
-
 	if err != nil {
 		return -1, err
 	}

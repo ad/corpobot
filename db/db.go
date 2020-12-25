@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"time"
+
 	// "strings"
 
 	dlog "github.com/amoghe/distillog"
@@ -14,16 +15,15 @@ import (
 
 // TelegramMessage ...
 type TelegramMessage struct {
-	ID       	int
-	TelegramID  int
-	FirstName 	string
-	LastName 	string
-	UserName 	string
-	Message  	string
-	IsBot  		bool
-	Date     	time.Time
+	ID         int
+	TelegramID int
+	FirstName  string
+	LastName   string
+	UserName   string
+	Message    string
+	IsBot      bool
+	Date       time.Time
 }
-
 
 // InitDB ...
 func InitDB() (*sql.DB, error) {
@@ -182,10 +182,10 @@ func QuerySQLList(db *sql.DB, returnModel interface{}, sql string, args ...inter
 func StoreTelegramMessage(db *sql.DB, message *TelegramMessage) error {
 	user := &User{
 		TelegramID: message.TelegramID,
-		FirstName: 	message.FirstName,
-		LastName: 	message.LastName,
-		UserName: 	message.UserName,
-		IsBot: 		message.IsBot,
+		FirstName:  message.FirstName,
+		LastName:   message.LastName,
+		UserName:   message.UserName,
+		IsBot:      message.IsBot,
 	}
 
 	_, err := AddUserIfNotExist(db, user)

@@ -4,8 +4,8 @@ import (
 	// s "database/sql"
 	"fmt"
 	// "reflect"
-	"time"
 	"strings"
+	"time"
 
 	dlog "github.com/amoghe/distillog"
 	sql "github.com/lazada/sqle"
@@ -14,14 +14,14 @@ import (
 
 // Group ...
 type Group struct {
-	ID             int64     `sql:"id"`
-	Name      	   string    `sql:"name"`
-	State          string    `sql:"state"`
-	CreatedAt      time.Time `sql:"created_at"`
+	ID        int64     `sql:"id"`
+	Name      string    `sql:"name"`
+	State     string    `sql:"state"`
+	CreatedAt time.Time `sql:"created_at"`
 }
 
 func (g *Group) String() string {
-    return g.Name
+	return g.Name
 }
 
 // AddGroupIfNotExist ...
@@ -50,7 +50,6 @@ func AddGroupIfNotExist(db *sql.DB, group *Group) (*Group, error) {
 		group.Name,
 		group.State,
 	)
-
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +70,7 @@ func GetGroups(db *sql.DB, states []string) (groups []*Group, err error) {
 
 	args := make([]interface{}, len(states))
 	for i, state := range states {
-	    args[i] = state
+		args[i] = state
 	}
 
 	var returnModel Group
@@ -105,13 +104,11 @@ func UpdateGroupState(db *sql.DB, group *Group) (int64, error) {
 		group.State,
 		group.Name,
 		group.State)
-
 	if err != nil {
 		return -1, err
 	}
 
 	rows, err := result.RowsAffected()
-
 	if err != nil {
 		return -1, err
 	}
@@ -126,13 +123,11 @@ func UpdateGroupName(db *sql.DB, oldName, newName string) (int64, error) {
 		newName,
 		oldName,
 		newName)
-
 	if err != nil {
 		return -1, err
 	}
 
 	rows, err := result.RowsAffected()
-
 	if err != nil {
 		return -1, err
 	}

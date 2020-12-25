@@ -5,18 +5,18 @@ import (
 
 	"github.com/ad/corpobot/plugins"
 
+	telegram "github.com/ad/corpobot/telegram"
 	dlog "github.com/amoghe/distillog"
 	tgbotapi "gopkg.in/telegram-bot-api.v4"
-	telegram "github.com/ad/corpobot/telegram"
 )
 
 type MePlugin struct {
-
 }
 
 func init() {
 	plugins.RegisterPlugin(&MePlugin{})
 }
+
 func (m *MePlugin) OnStart() {
 	if !plugins.CheckIfPluginDisabled("me.MePlugin", "enabled") {
 		return
@@ -24,6 +24,7 @@ func (m *MePlugin) OnStart() {
 
 	plugins.RegisterCommand("me", "...")
 }
+
 func (m *MePlugin) OnStop() {
 	dlog.Debugln("[MePlugin] Stopped")
 

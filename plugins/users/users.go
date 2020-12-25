@@ -3,8 +3,8 @@ package users
 import (
 	"strings"
 
-	"github.com/ad/corpobot/plugins"
 	database "github.com/ad/corpobot/db"
+	"github.com/ad/corpobot/plugins"
 	telegram "github.com/ad/corpobot/telegram"
 
 	dlog "github.com/amoghe/distillog"
@@ -12,7 +12,6 @@ import (
 )
 
 type UsersPlugin struct {
-
 }
 
 func init() {
@@ -62,7 +61,7 @@ func (m *UsersPlugin) Run(update *tgbotapi.Update) (bool, error) {
 			var usersList []string
 
 			for _, u := range users {
-				usersList = append(usersList, "• " + u.String())
+				usersList = append(usersList, "• "+u.String())
 			}
 
 			return true, telegram.Send(update.Message.Chat.ID, strings.Join(usersList, "\n"))
@@ -74,7 +73,7 @@ func (m *UsersPlugin) Run(update *tgbotapi.Update) (bool, error) {
 	if update.Message.Command() == "userblock" || update.Message.Command() == "userunblock" {
 		// TODO: check user rights
 
-		var newRole = "member"
+		newRole := "member"
 
 		if update.Message.Command() == "userblock" {
 			newRole = "blocked"
@@ -83,8 +82,8 @@ func (m *UsersPlugin) Run(update *tgbotapi.Update) (bool, error) {
 		args := strings.TrimLeft(update.Message.CommandArguments(), "@")
 
 		user := &database.User{
-			UserName: 	args,
-			Role: 		newRole,
+			UserName: args,
+			Role:     newRole,
 		}
 
 		rows, err := database.UpdateUserRole(plugins.DB, user)
@@ -93,16 +92,16 @@ func (m *UsersPlugin) Run(update *tgbotapi.Update) (bool, error) {
 		}
 
 		if rows != 1 {
-			return true, telegram.Send(update.Message.Chat.ID, update.Message.Command() + " failed")
+			return true, telegram.Send(update.Message.Chat.ID, update.Message.Command()+" failed")
 		}
 
-		return true, telegram.Send(update.Message.Chat.ID, update.Message.Command() + " success")
+		return true, telegram.Send(update.Message.Chat.ID, update.Message.Command()+" success")
 	}
 
 	if update.Message.Command() == "userdelete" || update.Message.Command() == "userundelete" {
 		// TODO: check user rights
 
-		var newRole = "member"
+		newRole := "member"
 
 		if update.Message.Command() == "userdelete" {
 			newRole = "deleted"
@@ -111,8 +110,8 @@ func (m *UsersPlugin) Run(update *tgbotapi.Update) (bool, error) {
 		args := strings.TrimLeft(update.Message.CommandArguments(), "@")
 
 		user := &database.User{
-			UserName: 	args,
-			Role: 		newRole,
+			UserName: args,
+			Role:     newRole,
 		}
 
 		rows, err := database.UpdateUserRole(plugins.DB, user)
@@ -121,10 +120,10 @@ func (m *UsersPlugin) Run(update *tgbotapi.Update) (bool, error) {
 		}
 
 		if rows != 1 {
-			return true, telegram.Send(update.Message.Chat.ID, update.Message.Command() + " failed")
+			return true, telegram.Send(update.Message.Chat.ID, update.Message.Command()+" failed")
 		}
 
-		return true, telegram.Send(update.Message.Chat.ID, update.Message.Command() + " success")
+		return true, telegram.Send(update.Message.Chat.ID, update.Message.Command()+" success")
 	}
 
 	if update.Message.Command() == "userban" {

@@ -7,12 +7,12 @@ import (
 	"net/http"
 	"time"
 
+	database "github.com/ad/corpobot/db"
+	"github.com/ad/corpobot/plugins"
 	dlog "github.com/amoghe/distillog"
+	sql "github.com/lazada/sqle"
 	"golang.org/x/net/proxy"
 	tgbotapi "gopkg.in/telegram-bot-api.v4"
-	database "github.com/ad/corpobot/db"
-	sql "github.com/lazada/sqle"
-	"github.com/ad/corpobot/plugins"
 )
 
 // InitTelegram ...
@@ -65,13 +65,12 @@ func ProcessTelegramMessages(db *sql.DB, bot *tgbotapi.BotAPI, updates tgbotapi.
 
 			message := database.TelegramMessage{
 				TelegramID: update.Message.From.ID,
-				FirstName: 	update.Message.From.FirstName,
-				LastName: 	update.Message.From.LastName,
-				UserName: 	update.Message.From.UserName,
-				Message:  	update.Message.Text,
-				Date:     	time.Unix(int64(update.Message.Date), 0),
+				FirstName:  update.Message.From.FirstName,
+				LastName:   update.Message.From.LastName,
+				UserName:   update.Message.From.UserName,
+				Message:    update.Message.Text,
+				Date:       time.Unix(int64(update.Message.Date), 0),
 			}
-
 
 			err2 := database.StoreTelegramMessage(db, &message)
 			if err2 != nil {
@@ -103,7 +102,7 @@ func ProcessTelegramMessages(db *sql.DB, bot *tgbotapi.BotAPI, updates tgbotapi.
 }
 
 func updateGroupChat(db *sql.DB, message *tgbotapi.Message) {
-	if (message == nil) {
+	if message == nil {
 		return
 	}
 
@@ -112,7 +111,7 @@ func updateGroupChat(db *sql.DB, message *tgbotapi.Message) {
 	newChatMembers := message.NewChatMembers
 
 	// TODO: сделать какую-то реакцию на удаление бота из чата *message.LeftChatMember
-	if (message.Chat.Type == "supergroup" && newChatMembers != nil && len(*newChatMembers) > 0) {
+	if message.Chat.Type == "supergroup" && newChatMembers != nil && len(*newChatMembers) > 0 {
 		// ищем себя в списке, чтобы определить что нас добавили в какой-то групчат
 		for i := range *newChatMembers {
 			user := (*newChatMembers)[i]
@@ -122,16 +121,16 @@ func updateGroupChat(db *sql.DB, message *tgbotapi.Message) {
 		}
 	}
 
-	if (message.Chat.Type == "supergroup") {
+	if message.Chat.Type == "supergroup" {
 		needCreate = true
 	}
 
 	if needCreate {
 		groupchat := database.Groupchat{
-			Title: 		message.Chat.Title,
+			Title:      message.Chat.Title,
 			TelegramID: message.Chat.ID,
 			InviteLink: message.Chat.InviteLink,
-			State: 		"active",
+			State:      "active",
 		}
 		_, err := database.AddGroupChatIfNotExist(db, &groupchat)
 		if err != nil && err.Error() != database.GroupChatAlreadyExists {
@@ -141,7 +140,7 @@ func updateGroupChat(db *sql.DB, message *tgbotapi.Message) {
 
 	if message.NewChatTitle != "" {
 		groupchat := database.Groupchat{
-			Title: 		message.NewChatTitle,
+			Title:      message.NewChatTitle,
 			TelegramID: message.Chat.ID,
 			InviteLink: message.Chat.InviteLink,
 		}
@@ -153,22 +152,22 @@ func updateGroupChat(db *sql.DB, message *tgbotapi.Message) {
 }
 
 // SendPlain ...
-func Send(chatID int64, message string) (error) {
+func Send(chatID int64, message string) error {
 	return SendCustom(chatID, 0, message, false)
 }
 
 // SendMarkdown ...
-func SendMarkdown(chatID int64, replyTo int, message string, isMarkdown bool) (error) {
+func SendMarkdown(chatID int64, replyTo int, message string, isMarkdown bool) error {
 	return SendCustom(chatID, replyTo, message, true)
 }
 
 // SendPlain ...
-func SendPlain(chatID int64, replyTo int, message string) (error) {
+func SendPlain(chatID int64, replyTo int, message string) error {
 	return SendCustom(chatID, replyTo, message, false)
 }
 
 // Send ...
-func SendCustom(chatID int64, replyTo int, message string, isMarkdown bool) (error) {
+func SendCustom(chatID int64, replyTo int, message string, isMarkdown bool) error {
 	msg := tgbotapi.NewMessage(chatID, "")
 	if isMarkdown {
 		msg.ParseMode = "Markdown"

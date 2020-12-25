@@ -6,8 +6,8 @@ import (
 
 	database "github.com/ad/corpobot/db"
 	dlog "github.com/amoghe/distillog"
-	tgbotapi "gopkg.in/telegram-bot-api.v4"
 	sql "github.com/lazada/sqle"
+	tgbotapi "gopkg.in/telegram-bot-api.v4"
 )
 
 // TelegramPlugin ...
@@ -18,11 +18,13 @@ type TelegramPlugin interface {
 }
 
 // These are are registered plugins
-var Plugins = map[string]TelegramPlugin{}
-var DisabledPlugins = map[string]TelegramPlugin{}
-var Commands = make(map[string]string)
-var Bot *tgbotapi.BotAPI
-var DB *sql.DB
+var (
+	Plugins         = map[string]TelegramPlugin{}
+	DisabledPlugins = map[string]TelegramPlugin{}
+	Commands        = make(map[string]string)
+	Bot             *tgbotapi.BotAPI
+	DB              *sql.DB
+)
 
 // Register a Plugin
 func RegisterPlugin(p TelegramPlugin) {
@@ -43,12 +45,10 @@ func DisablePlugin(plugin string) bool {
 			dlog.Debugln(plugin + " removed from running plugins")
 		} else {
 			dlog.Debugln("Can't disable " + plugin + ", odd")
-
 		}
 		return disabled
 	} else {
 		dlog.Debugln("Plugin '" + plugin + "' does not exist or is not loaded")
-
 	}
 	return exists
 }
@@ -74,9 +74,9 @@ func EnablePlugin(plugin string) bool {
 	return false
 }
 
-func CheckIfPluginDisabled(name, state string) (bool) {
+func CheckIfPluginDisabled(name, state string) bool {
 	plugin := &database.Plugin{
-		Name: name,
+		Name:  name,
 		State: state,
 	}
 
@@ -89,7 +89,7 @@ func CheckIfPluginDisabled(name, state string) (bool) {
 		dlog.Debugln("[" + name + "] Disabled")
 		return false
 	}
-	
+
 	dlog.Debugln("[" + name + "] Started")
 
 	return true

@@ -1,11 +1,11 @@
 package groupchats
 
 import (
-	"strings"
 	"strconv"
+	"strings"
 
-	"github.com/ad/corpobot/plugins"
 	database "github.com/ad/corpobot/db"
+	"github.com/ad/corpobot/plugins"
 	telegram "github.com/ad/corpobot/telegram"
 
 	dlog "github.com/amoghe/distillog"
@@ -14,7 +14,6 @@ import (
 
 // GroupchatsPlugin ...
 type GroupchatsPlugin struct {
-
 }
 
 func init() {
@@ -52,7 +51,7 @@ func (m *GroupchatsPlugin) Run(update *tgbotapi.Update) (bool, error) {
 			var groupchatsList []string
 
 			for _, u := range groupchats {
-				groupchatsList = append(groupchatsList, "• " + u.String())
+				groupchatsList = append(groupchatsList, "• "+u.String())
 			}
 
 			return true, telegram.Send(update.Message.Chat.ID, strings.Join(groupchatsList, "\n"))
@@ -72,7 +71,7 @@ func (m *GroupchatsPlugin) Run(update *tgbotapi.Update) (bool, error) {
 
 		telegramID, err := strconv.ParseInt(args, 10, 64)
 		if err != nil {
-			return true, telegram.Send(update.Message.Chat.ID, "failed: " + err.Error())
+			return true, telegram.Send(update.Message.Chat.ID, "failed: "+err.Error())
 		}
 
 		groupchat := &database.Groupchat{
@@ -82,7 +81,7 @@ func (m *GroupchatsPlugin) Run(update *tgbotapi.Update) (bool, error) {
 		// if update.Message.Chat.InviteLink == "" {
 		inviteLink, err := plugins.Bot.GetInviteLink(tgbotapi.ChatConfig{ChatID: groupchat.TelegramID})
 		if err != nil {
-			return true, telegram.Send(update.Message.Chat.ID, "failed: " + err.Error())
+			return true, telegram.Send(update.Message.Chat.ID, "failed: "+err.Error())
 		} else {
 			groupchat.InviteLink = inviteLink
 		}
@@ -91,7 +90,7 @@ func (m *GroupchatsPlugin) Run(update *tgbotapi.Update) (bool, error) {
 		if groupchat.InviteLink != "" {
 			_, err := database.UpdateGroupChatInviteLink(plugins.DB, groupchat)
 			if err != nil {
-				return true, telegram.Send(update.Message.Chat.ID, "failed: " + err.Error())
+				return true, telegram.Send(update.Message.Chat.ID, "failed: "+err.Error())
 			}
 		}
 

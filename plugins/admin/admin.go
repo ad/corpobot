@@ -6,17 +6,16 @@ import (
 	"github.com/ad/corpobot/plugins"
 
 	database "github.com/ad/corpobot/db"
+	telegram "github.com/ad/corpobot/telegram"
 	dlog "github.com/amoghe/distillog"
 	tgbotapi "gopkg.in/telegram-bot-api.v4"
-	telegram "github.com/ad/corpobot/telegram"
 )
 
 type AdminPlugin struct {
-
 }
 
 func init() {
-	plugins.RegisterPlugin(&AdminPlugin{})			
+	plugins.RegisterPlugin(&AdminPlugin{})
 }
 
 func (m *AdminPlugin) OnStart() {
@@ -46,13 +45,13 @@ func (m *AdminPlugin) Run(update *tgbotapi.Update) (bool, error) {
 		args := update.Message.CommandArguments()
 		if plugins.EnablePlugin(args) {
 			plugin := &database.Plugin{
-				Name: args,
+				Name:  args,
 				State: "enabled",
 			}
 
 			_, err := database.UpdatePluginState(plugins.DB, plugin)
 			if err != nil {
-				return true, telegram.Send(update.Message.Chat.ID, "failed: " + err.Error())
+				return true, telegram.Send(update.Message.Chat.ID, "failed: "+err.Error())
 			}
 
 			return true, telegram.Send(update.Message.Chat.ID, args+" enabled")
@@ -65,13 +64,13 @@ func (m *AdminPlugin) Run(update *tgbotapi.Update) (bool, error) {
 		args := update.Message.CommandArguments()
 		if plugins.DisablePlugin(args) {
 			plugin := &database.Plugin{
-				Name: args,
+				Name:  args,
 				State: "disabled",
 			}
 
 			_, err := database.UpdatePluginState(plugins.DB, plugin)
 			if err != nil {
-				return true, telegram.Send(update.Message.Chat.ID, "failed: " + err.Error())
+				return true, telegram.Send(update.Message.Chat.ID, "failed: "+err.Error())
 			}
 
 			return true, telegram.Send(update.Message.Chat.ID, args+" disabled")
@@ -83,7 +82,7 @@ func (m *AdminPlugin) Run(update *tgbotapi.Update) (bool, error) {
 	return false, nil
 }
 
-func ListPlugins(update *tgbotapi.Update) (error) {
+func ListPlugins(update *tgbotapi.Update) error {
 	var loaded bytes.Buffer
 	var unloaded bytes.Buffer
 
@@ -101,5 +100,5 @@ func ListPlugins(update *tgbotapi.Update) (error) {
 		}
 	}
 
-	return telegram.Send(update.Message.Chat.ID, "Enabled plugins:\n" + loaded.String() + "\nDisabled plugins:\n" + unloaded.String())
+	return telegram.Send(update.Message.Chat.ID, "Enabled plugins:\n"+loaded.String()+"\nDisabled plugins:\n"+unloaded.String())
 }

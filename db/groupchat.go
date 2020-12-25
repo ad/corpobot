@@ -12,16 +12,16 @@ import (
 
 // Groupchat ...
 type Groupchat struct {
-	ID             int64     `sql:"id"`
-	Title 		   string    `sql:"title"`
-	TelegramID 	   int64     `sql:"telegram_id"`
-	State 		   string    `sql:"state"`
-	InviteLink	   string    `sql:"invite_link"`
-	CreatedAt      time.Time `sql:"created_at"`
+	ID         int64     `sql:"id"`
+	Title      string    `sql:"title"`
+	TelegramID int64     `sql:"telegram_id"`
+	State      string    `sql:"state"`
+	InviteLink string    `sql:"invite_link"`
+	CreatedAt  time.Time `sql:"created_at"`
 }
 
 func (gc *Groupchat) String() string {
-    return fmt.Sprintf("%s [id %d] %s", gc.Title, gc.TelegramID, gc.InviteLink)
+	return fmt.Sprintf("%s [id %d] %s", gc.Title, gc.TelegramID, gc.InviteLink)
 }
 
 // GetGroupchats ...
@@ -32,7 +32,7 @@ func GetGroupchats(db *sql.DB, states []string) (groupchats []*Groupchat, err er
 
 	args := make([]interface{}, len(states))
 	for i, state := range states {
-	    args[i] = state
+		args[i] = state
 	}
 
 	var returnModel Groupchat
@@ -79,7 +79,6 @@ func AddGroupChatIfNotExist(db *sql.DB, groupchat *Groupchat) (*Groupchat, error
 		groupchat.InviteLink,
 		groupchat.State,
 	)
-
 	if err != nil {
 		return nil, err
 	}
@@ -98,13 +97,11 @@ func UpdateGroupChatInviteLink(db *sql.DB, groupchat *Groupchat) (int64, error) 
 		"UPDATE groupchats SET invite_link = ? WHERE telegram_id = ?;",
 		groupchat.InviteLink,
 		groupchat.TelegramID)
-
 	if err != nil {
 		return -1, err
 	}
 
 	rows, err := result.RowsAffected()
-
 	if err != nil {
 		return -1, err
 	}
@@ -118,13 +115,11 @@ func UpdateGroupChatTitle(db *sql.DB, groupchat *Groupchat) (int64, error) {
 		"UPDATE groupchats SET title = ? WHERE telegram_id = ?;",
 		groupchat.Title,
 		groupchat.TelegramID)
-
 	if err != nil {
 		return -1, err
 	}
 
 	rows, err := result.RowsAffected()
-
 	if err != nil {
 		return -1, err
 	}

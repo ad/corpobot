@@ -3,8 +3,8 @@ package groups
 import (
 	"strings"
 
-	"github.com/ad/corpobot/plugins"
 	database "github.com/ad/corpobot/db"
+	"github.com/ad/corpobot/plugins"
 	telegram "github.com/ad/corpobot/telegram"
 
 	dlog "github.com/amoghe/distillog"
@@ -12,7 +12,6 @@ import (
 )
 
 type GroupsPlugin struct {
-
 }
 
 func init() {
@@ -56,7 +55,7 @@ func (m *GroupsPlugin) Run(update *tgbotapi.Update) (bool, error) {
 			var groupsList []string
 
 			for _, u := range groups {
-				groupsList = append(groupsList, "• " + u.String())
+				groupsList = append(groupsList, "• "+u.String())
 			}
 
 			return true, telegram.Send(update.Message.Chat.ID, strings.Join(groupsList, "\n"))
@@ -75,12 +74,12 @@ func (m *GroupsPlugin) Run(update *tgbotapi.Update) (bool, error) {
 		}
 
 		group := &database.Group{
-			Name: 	args,
+			Name: args,
 		}
 
 		_, err := database.AddGroupIfNotExist(plugins.DB, group)
 		if err != nil {
-			return true, telegram.Send(update.Message.Chat.ID, "failed: " + err.Error())
+			return true, telegram.Send(update.Message.Chat.ID, "failed: "+err.Error())
 		}
 
 		return true, telegram.Send(update.Message.Chat.ID, "group created")
@@ -109,16 +108,16 @@ func (m *GroupsPlugin) Run(update *tgbotapi.Update) (bool, error) {
 		}
 
 		if rows != 1 {
-			return true, telegram.Send(update.Message.Chat.ID, update.Message.Command() + " failed")
+			return true, telegram.Send(update.Message.Chat.ID, update.Message.Command()+" failed")
 		}
 
-		return true, telegram.Send(update.Message.Chat.ID, update.Message.Command() + " success")
+		return true, telegram.Send(update.Message.Chat.ID, update.Message.Command()+" success")
 	}
 
 	if update.Message.Command() == "groupdelete" || update.Message.Command() == "groupundelete" {
 		// TODO: check user rights
 
-		var newState = "active"
+		newState := "active"
 
 		if update.Message.Command() == "groupdelete" {
 			newState = "deleted"
@@ -127,8 +126,8 @@ func (m *GroupsPlugin) Run(update *tgbotapi.Update) (bool, error) {
 		args := update.Message.CommandArguments()
 
 		group := &database.Group{
-			Name: 	args,
-			State: 	newState,
+			Name:  args,
+			State: newState,
 		}
 
 		rows, err := database.UpdateGroupState(plugins.DB, group)
@@ -137,10 +136,10 @@ func (m *GroupsPlugin) Run(update *tgbotapi.Update) (bool, error) {
 		}
 
 		if rows != 1 {
-			return true, telegram.Send(update.Message.Chat.ID, update.Message.Command() + " failed")
+			return true, telegram.Send(update.Message.Chat.ID, update.Message.Command()+" failed")
 		}
 
-		return true, telegram.Send(update.Message.Chat.ID, update.Message.Command() + " success")
+		return true, telegram.Send(update.Message.Chat.ID, update.Message.Command()+" success")
 	}
 
 	return false, nil

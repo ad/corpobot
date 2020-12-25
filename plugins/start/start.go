@@ -2,14 +2,13 @@ package start
 
 import (
 	"github.com/ad/corpobot/plugins"
-	
+
+	telegram "github.com/ad/corpobot/telegram"
 	dlog "github.com/amoghe/distillog"
 	tgbotapi "gopkg.in/telegram-bot-api.v4"
-	telegram "github.com/ad/corpobot/telegram"
 )
 
 type StartPlugin struct {
-
 }
 
 func init() {

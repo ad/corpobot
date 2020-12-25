@@ -6,13 +6,12 @@ import (
 
 	"github.com/ad/corpobot/plugins"
 
+	telegram "github.com/ad/corpobot/telegram"
 	dlog "github.com/amoghe/distillog"
 	tgbotapi "gopkg.in/telegram-bot-api.v4"
-	telegram "github.com/ad/corpobot/telegram"
 )
 
 type HelpPlugin struct {
-
 }
 
 func init() {
@@ -36,7 +35,7 @@ func (m *HelpPlugin) OnStop() {
 func (m *HelpPlugin) Run(update *tgbotapi.Update) (bool, error) {
 	if update.Message.Command() == "help" {
 		var mk []string
-		
+
 		for k := range plugins.Commands {
 			mk = append(mk, k)
 		}

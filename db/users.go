@@ -4,8 +4,8 @@ import (
 	// s "database/sql"
 	"fmt"
 	// "reflect"
-	"time"
 	"strings"
+	"time"
 
 	dlog "github.com/amoghe/distillog"
 	sql "github.com/lazada/sqle"
@@ -14,18 +14,18 @@ import (
 
 // User ...
 type User struct {
-	ID             int64     `sql:"id"`
-	FirstName      string    `sql:"first_name"`
-	LastName       string    `sql:"last_name"`
-	UserName       string    `sql:"user_name"`
-	TelegramID 	   int       `sql:"telegram_id"`
-	IsBot		   bool		 `sql:"is_bot"`
-	Role 	   	   string    `sql:"role"`
-	CreatedAt      time.Time `sql:"created_at"`
+	ID         int64     `sql:"id"`
+	FirstName  string    `sql:"first_name"`
+	LastName   string    `sql:"last_name"`
+	UserName   string    `sql:"user_name"`
+	TelegramID int       `sql:"telegram_id"`
+	IsBot      bool      `sql:"is_bot"`
+	Role       string    `sql:"role"`
+	CreatedAt  time.Time `sql:"created_at"`
 }
 
 func (u *User) String() string {
-    return fmt.Sprintf("@%s %s %s [id %d] (%s)", u.UserName, u.FirstName, u.LastName, u.TelegramID, u.Role)
+	return fmt.Sprintf("@%s %s %s [id %d] (%s)", u.UserName, u.FirstName, u.LastName, u.TelegramID, u.Role)
 }
 
 // AddUserIfNotExist ...
@@ -57,7 +57,6 @@ func AddUserIfNotExist(db *sql.DB, user *User) (*User, error) {
 		user.TelegramID,
 		user.IsBot,
 	)
-
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +69,6 @@ func AddUserIfNotExist(db *sql.DB, user *User) (*User, error) {
 	return user, nil
 }
 
-
 // GetUsers ...
 func GetUsers(db *sql.DB, roles []string) (users []*User, err error) {
 	if len(roles) == 0 {
@@ -79,7 +77,7 @@ func GetUsers(db *sql.DB, roles []string) (users []*User, err error) {
 
 	args := make([]interface{}, len(roles))
 	for i, role := range roles {
-	    args[i] = role
+		args[i] = role
 	}
 
 	var returnModel User
@@ -113,13 +111,11 @@ func UpdateUserRole(db *sql.DB, user *User) (int64, error) {
 		user.Role,
 		user.UserName,
 		user.Role)
-
 	if err != nil {
 		return -1, err
 	}
 
 	rows, err := result.RowsAffected()
-
 	if err != nil {
 		return -1, err
 	}
