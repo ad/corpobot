@@ -36,6 +36,3 @@
 - [ ] Онбординг
 - [ ] Контакты
 - [ ] Бродкасты
-
-
-https://core.telegram.org/bots/api#promotechatmember
