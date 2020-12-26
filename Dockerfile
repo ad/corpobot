@@ -11,7 +11,6 @@ COPY . .
 RUN GOOS=linux GOARCH=amd64 go build -mod=vendor -ldflags='-w -s -extldflags "-static"' -a -o /go/bin/corpobot .
 
 FROM scratch
-EXPOSE 8080
 COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /etc/passwd /etc/passwd
