@@ -52,14 +52,16 @@ func main() {
 	// Init Telegram
 	bot, err = telegram.InitTelegram(config.TelegramToken, config.TelegramProxyHost, config.TelegramProxyPort, config.TelegramProxyUser, config.TelegramProxyPassword, config.TelegramDebug)
 	if err != nil {
-		log.Fatalf("fail on telegram login: %v", err)
+		log.Printf("fail on telegram login: %v", err)
+		return
 	}
 
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
 	updates, err := bot.GetUpdatesChan(u)
 	if err != nil {
-		log.Fatalf("[INIT] [Failed to init Telegram updates chan: %v]", err)
+		log.Printf("[INIT] [Failed to init Telegram updates chan: %v]", err)
+		return
 	}
 
 	dlog.Debugln("Waiting for plugins...")
