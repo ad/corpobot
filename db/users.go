@@ -145,3 +145,19 @@ func UpdateUserRole(db *sql.DB, user *User) (int64, error) {
 
 	return rows, nil
 }
+
+// GetUserByTelegramID ...
+func GetUserByTelegramID(db *sql.DB, user *User) (*User, error) {
+	var returnModel User
+
+	result, err := QuerySQLObject(db, returnModel, `SELECT * FROM users WHERE telegram_id = ?;`, user.TelegramID)
+	if err != nil {
+		return nil, err
+	}
+
+	if returnModel, ok := result.Interface().(*User); ok && returnModel.Role != "" {
+		return returnModel, nil
+	}
+
+	return nil, fmt.Errorf(UserNotFound)
+}

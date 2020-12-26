@@ -193,3 +193,41 @@ func DeleteGroupGroupChat(db *sql.DB, group *Group, groupchat *Groupchat) (bool,
 
 	return true, nil
 }
+
+// AddGroupUserIfNotExist ...
+func AddGroupUserIfNotExist(db *sql.DB, group *Group, user *User) (bool, error) {
+	res, err := db.Exec(
+		"INSERT INTO groups_Users (group_id, user_id) VALUES (?, ?);",
+		group.ID,
+		user.ID,
+	)
+	if err != nil {
+		return false, err
+	}
+
+	_, err = res.LastInsertId()
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+// DeleteGroupUser ...
+func DeleteGroupUser(db *sql.DB, group *Group, user *User) (bool, error) {
+	res, err := db.Exec(
+		"DELETE FROM groups_Users WHERE group_id = ? AND user_id = ?;",
+		group.ID,
+		user.ID,
+	)
+	if err != nil {
+		return false, err
+	}
+
+	_, err = res.LastInsertId()
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
