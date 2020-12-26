@@ -128,6 +128,19 @@ func InitDB() (*sql.DB, error) {
 		dlog.Errorf("%s", err)
 	}
 
+	err = ExecSQL(db, `CREATE TABLE IF NOT EXISTS "groups_groupchats" (
+		"id" INTEGER PRIMARY KEY AUTOINCREMENT,
+		"group_id" INTEGER NOT NULL,
+		"groupchat_id" INTEGER NOT NULL,
+		"created_at" timestamp DEFAULT CURRENT_TIMESTAMP,
+		CONSTRAINT "groups_groupchats_group_id" FOREIGN KEY ("group_id") REFERENCES "groups" ("id") ON DELETE CASCADE,
+		CONSTRAINT "groups_groupchats_groupchat_id" FOREIGN KEY ("groupchat_id") REFERENCES "groupchats" ("id") ON DELETE CASCADE,
+		CONSTRAINT "groups_groupchats_pair" UNIQUE ("group_id" ASC, "groupchat_id" ASC) ON CONFLICT IGNORE
+	  );`)
+	if err != nil {
+		dlog.Errorf("%s", err)
+	}
+
 	return db, nil
 }
 

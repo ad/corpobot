@@ -139,3 +139,57 @@ func UpdateGroupName(db *sql.DB, oldName, newName string) (int64, error) {
 
 	return rows, nil
 }
+
+// GetGroupByName ...
+func GetGroupByName(db *sql.DB, group *Group) (*Group, error) {
+	var returnModel Group
+
+	result, err := QuerySQLObject(db, returnModel, `SELECT * FROM groups WHERE name = ?;`, group.Name)
+	if err != nil {
+		return nil, err
+	}
+
+	if returnModel, ok := result.Interface().(*Group); ok && returnModel.Name != "" {
+		return returnModel, nil
+	}
+
+	return nil, fmt.Errorf(GroupNotFound)
+}
+
+// AddGroupGroupChatIfNotExist ...
+func AddGroupGroupChatIfNotExist(db *sql.DB, group *Group, groupchat * Groupchat) (bool, error) {
+	res, err := db.Exec(
+		"INSERT INTO groups_groupchats (group_id, groupchat_id) VALUES (?, ?);",
+		group.ID,
+		groupchat.ID,
+	)
+	if err != nil {
+		return false, err
+	}
+
+	_, err = res.LastInsertId()
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+// DeleteGroupGroupChat ...
+func DeleteGroupGroupChat(db *sql.DB, group *Group, groupchat * Groupchat) (bool, error) {
+	res, err := db.Exec(
+		"DELETE FROM groups_groupchats WHERE group_id = ? AND groupchat_id = ?;",
+		group.ID,
+		groupchat.ID,
+	)
+	if err != nil {
+		return false, err
+	}
+
+	_, err = res.LastInsertId()
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}

@@ -23,7 +23,7 @@ import (
 	_ "github.com/ad/corpobot/plugins/users"
 )
 
-const version = "0.0.1"
+const version = "0.0.2"
 
 var (
 	err error
@@ -62,7 +62,7 @@ func main() {
 		log.Fatalf("[INIT] [Failed to init Telegram updates chan: %v]", err)
 	}
 
-	dlog.Infoln("Waiting for plugins...")
+	dlog.Debugln("Waiting for plugins...")
 	for {
 		if plugins.DB != nil && plugins.DB.Ping() == nil {
 			// Bootstrapper for plugins

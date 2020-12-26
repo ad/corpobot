@@ -2,14 +2,15 @@ package db
 
 // AlreadyExists ...
 const (
-	UserAlreadyExists = "already exists"
+	UserAlreadyExists = "user already exists"
 	UserNotFound      = "user not found"
 	UserDeleted       = "user deleted"
 	UserBlocked       = "user blocked"
 
-	GroupAlreadyExists = "already exists"
-	GroupNotFound      = "user not found"
-	GroupDeleted       = "user deleted"
+	GroupAlreadyExists = "group already exists"
+	GroupNotFound      = "group not found"
+	GroupDeleted       = "group deleted"
 
-	GroupChatAlreadyExists = "already exists"
+	GroupChatAlreadyExists = "groupchat already exists"
+	GroupChatNotFound      = "groupchat not found"
 )

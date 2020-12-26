@@ -1,6 +1,7 @@
 package groups
 
 import (
+	"strconv"
 	"strings"
 
 	database "github.com/ad/corpobot/db"
@@ -28,6 +29,8 @@ func (m *Plugin) OnStart() {
 	plugins.RegisterCommand("grouprename", "...")
 	plugins.RegisterCommand("groupdelete", "...")
 	plugins.RegisterCommand("groupundelete", "...")
+	plugins.RegisterCommand("groupaddgroupchat", "...")
+	plugins.RegisterCommand("groupdeletegroupchat", "...")
 }
 
 func (m *Plugin) OnStop() {
@@ -38,6 +41,8 @@ func (m *Plugin) OnStop() {
 	plugins.UnregisterCommand("grouprename")
 	plugins.UnregisterCommand("groupdelete")
 	plugins.UnregisterCommand("groupundelete")
+	plugins.UnregisterCommand("groupaddgroupchat")
+	plugins.UnregisterCommand("groupdeletegroupchat")
 }
 
 func (m *Plugin) Run(update *tgbotapi.Update) (bool, error) {
@@ -57,6 +62,14 @@ func (m *Plugin) Run(update *tgbotapi.Update) (bool, error) {
 
 	if update.Message.Command() == "groupdelete" || update.Message.Command() == "groupundelete" {
 		return groupDeleteUndelete(update, args)
+	}
+
+	if update.Message.Command() == "groupaddgroupchat" {
+		return groupAddGroupChat(update, args)
+	}
+
+	if update.Message.Command() == "groupdeletegroupchat" {
+		return groupDeleteGroupChat(update, args)
 	}
 
 	return false, nil
@@ -150,6 +163,86 @@ func groupDeleteUndelete(update *tgbotapi.Update, args string) (bool, error) {
 
 	if rows != 1 {
 		return true, telegram.Send(update.Message.Chat.ID, update.Message.Command()+" failed")
+	}
+
+	return true, telegram.Send(update.Message.Chat.ID, update.Message.Command()+" success")
+}
+
+func groupAddGroupChat(update *tgbotapi.Update, args string) (bool, error) {
+	// TODO: check user rights
+
+	params := strings.Split(args, "\n")
+
+	errorString := "failed: you must provide two lines (group name and groupchat id) with a new line between them"
+
+	if len(params) != 2 {
+		return true, telegram.Send(update.Message.Chat.ID, errorString)
+	}
+
+	groupName, groupchatIDstring := strings.TrimSpace(params[0]), strings.TrimSpace(params[1])
+
+	if groupName == "" || groupchatIDstring == "" {
+		return true, telegram.Send(update.Message.Chat.ID, errorString)
+	}
+	
+	groupchatID, err := strconv.ParseInt(groupchatIDstring, 10, 64)
+	if err != nil {
+	    return true, telegram.Send(update.Message.Chat.ID, errorString)
+	}
+
+	group, err := database.GetGroupByName(plugins.DB, &database.Group{Name: groupName})
+	if err != nil {
+		return true, telegram.Send(update.Message.Chat.ID, err.Error())
+	}
+
+	groupchat, err := database.GetGroupByTelegramID(plugins.DB, &database.Groupchat{TelegramID: groupchatID})
+	if err != nil {
+		return true, telegram.Send(update.Message.Chat.ID, err.Error())
+	}
+
+	_, err = database.AddGroupGroupChatIfNotExist(plugins.DB, group, groupchat)
+	if err != nil {
+		return true, telegram.Send(update.Message.Chat.ID, err.Error())
+	}
+
+	return true, telegram.Send(update.Message.Chat.ID, update.Message.Command()+" success")
+}
+
+func groupDeleteGroupChat(update *tgbotapi.Update, args string) (bool, error) {
+	// TODO: check user rights
+
+	params := strings.Split(args, "\n")
+
+	errorString := "failed: you must provide two lines (group name and groupchat id) with a new line between them"
+
+	if len(params) != 2 {
+		return true, telegram.Send(update.Message.Chat.ID, errorString)
+	}
+
+	groupName, groupchatIDstring := strings.TrimSpace(params[0]), strings.TrimSpace(params[1])
+
+	if groupName == "" || groupchatIDstring == "" {
+		return true, telegram.Send(update.Message.Chat.ID, errorString)
+	}
+	
+	groupchatID, err := strconv.ParseInt(groupchatIDstring, 10, 64)
+	if err != nil {
+	    return true, telegram.Send(update.Message.Chat.ID, errorString)
+	}
+
+	group, err := database.GetGroupByName(plugins.DB, &database.Group{Name: groupName})
+	if err != nil {
+		return true, telegram.Send(update.Message.Chat.ID, err.Error())
+	}
+
+	groupchat, err := database.GetGroupByTelegramID(plugins.DB, &database.Groupchat{TelegramID: groupchatID})
+	if err != nil {
+		return true, telegram.Send(update.Message.Chat.ID, err.Error())
+	}
+
+	_, err = database.DeleteGroupGroupChat(plugins.DB, group, groupchat)
+	if err != nil {
+		return true, telegram.Send(update.Message.Chat.ID, err.Error())
 	}
 
 	return true, telegram.Send(update.Message.Chat.ID, update.Message.Command()+" success")

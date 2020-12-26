@@ -108,6 +108,8 @@ FROM
 	users
 WHERE
 	role IN (?` + strings.Repeat(",?", len(args)-1) + `)
+		AND
+	is_bot = False
 ORDER BY
 	role, id;`
 

@@ -140,3 +140,19 @@ func UpdateGroupChatTitle(db *sql.DB, groupchat *Groupchat) (int64, error) {
 
 	return rows, nil
 }
+
+// GetGroupByTelegramID ...
+func GetGroupByTelegramID(db *sql.DB, groupchat *Groupchat) (*Groupchat, error) {
+	var returnModel Groupchat
+
+	result, err := QuerySQLObject(db, returnModel, `SELECT * FROM groupchats WHERE telegram_id = ?;`, groupchat.TelegramID)
+	if err != nil {
+		return nil, err
+	}
+
+	if returnModel, ok := result.Interface().(*Groupchat); ok && returnModel.State != "" {
+		return returnModel, nil
+	}
+
+	return nil, fmt.Errorf(GroupChatNotFound)
+}
