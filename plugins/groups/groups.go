@@ -81,7 +81,7 @@ func (m *Plugin) Run(update *tgbotapi.Update) (bool, error) {
 	}
 
 	if update.Message.Command() == "groupdeleteuser" {
-		return groupDeleteGroupChat(update, args)
+		return groupDeleteUser(update, args)
 	}
 
 	return false, nil
