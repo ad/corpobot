@@ -184,10 +184,10 @@ func groupAddGroupChat(update *tgbotapi.Update, args string) (bool, error) {
 	if groupName == "" || groupchatIDstring == "" {
 		return true, telegram.Send(update.Message.Chat.ID, errorString)
 	}
-	
+
 	groupchatID, err := strconv.ParseInt(groupchatIDstring, 10, 64)
 	if err != nil {
-	    return true, telegram.Send(update.Message.Chat.ID, errorString)
+		return true, telegram.Send(update.Message.Chat.ID, errorString)
 	}
 
 	group, err := database.GetGroupByName(plugins.DB, &database.Group{Name: groupName})
@@ -224,10 +224,10 @@ func groupDeleteGroupChat(update *tgbotapi.Update, args string) (bool, error) {
 	if groupName == "" || groupchatIDstring == "" {
 		return true, telegram.Send(update.Message.Chat.ID, errorString)
 	}
-	
+
 	groupchatID, err := strconv.ParseInt(groupchatIDstring, 10, 64)
 	if err != nil {
-	    return true, telegram.Send(update.Message.Chat.ID, errorString)
+		return true, telegram.Send(update.Message.Chat.ID, errorString)
 	}
 
 	group, err := database.GetGroupByName(plugins.DB, &database.Group{Name: groupName})

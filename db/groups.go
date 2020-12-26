@@ -157,7 +157,7 @@ func GetGroupByName(db *sql.DB, group *Group) (*Group, error) {
 }
 
 // AddGroupGroupChatIfNotExist ...
-func AddGroupGroupChatIfNotExist(db *sql.DB, group *Group, groupchat * Groupchat) (bool, error) {
+func AddGroupGroupChatIfNotExist(db *sql.DB, group *Group, groupchat *Groupchat) (bool, error) {
 	res, err := db.Exec(
 		"INSERT INTO groups_groupchats (group_id, groupchat_id) VALUES (?, ?);",
 		group.ID,
@@ -176,7 +176,7 @@ func AddGroupGroupChatIfNotExist(db *sql.DB, group *Group, groupchat * Groupchat
 }
 
 // DeleteGroupGroupChat ...
-func DeleteGroupGroupChat(db *sql.DB, group *Group, groupchat * Groupchat) (bool, error) {
+func DeleteGroupGroupChat(db *sql.DB, group *Group, groupchat *Groupchat) (bool, error) {
 	res, err := db.Exec(
 		"DELETE FROM groups_groupchats WHERE group_id = ? AND groupchat_id = ?;",
 		group.ID,
