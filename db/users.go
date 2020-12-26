@@ -4,6 +4,7 @@ import (
 	// s "database/sql"
 	"fmt"
 	// "reflect"
+	"strconv"
 	"strings"
 	"time"
 
@@ -26,7 +27,22 @@ type User struct {
 }
 
 func (u *User) String() string {
-	return fmt.Sprintf("@%s %s %s [id %d] (%s)", u.UserName, u.FirstName, u.LastName, u.TelegramID, u.Role)
+	var b strings.Builder
+	b.WriteRune('@')
+	b.WriteString(u.UserName)
+	b.WriteRune(' ')
+	b.WriteString(u.FirstName)
+	b.WriteRune(' ')
+	b.WriteString(u.LastName)
+	b.WriteRune(' ')
+	b.WriteRune('[')
+	b.WriteString(strconv.Itoa(u.TelegramID))
+	b.WriteRune(']')
+	b.WriteRune(' ')
+	b.WriteRune('(')
+	b.WriteString(u.Role)
+	b.WriteRune(')')
+	return b.String()
 }
 
 // AddUserIfNotExist ...

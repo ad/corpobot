@@ -2,6 +2,7 @@ package db
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -22,7 +23,15 @@ type Groupchat struct {
 }
 
 func (gc *Groupchat) String() string {
-	return fmt.Sprintf("%s [id %d] %s", gc.Title, gc.TelegramID, gc.InviteLink)
+	var b strings.Builder
+	b.WriteString(gc.Title)
+	b.WriteRune(' ')
+	b.WriteRune('[')
+	b.WriteString(strconv.FormatInt(gc.TelegramID, 10))
+	b.WriteRune(']')
+	b.WriteRune(' ')
+	b.WriteString(gc.InviteLink)
+	return b.String()
 }
 
 // GetGroupchats ...

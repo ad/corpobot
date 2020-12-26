@@ -2,8 +2,9 @@ package db
 
 import (
 	// s "database/sql"
-	"fmt"
+	// "fmt"
 	// "reflect"
+	"strings"
 	"time"
 
 	dlog "github.com/amoghe/distillog"
@@ -21,7 +22,13 @@ type Plugin struct {
 }
 
 func (p *Plugin) String() string {
-	return fmt.Sprintf("%s — %s", p.Name, p.State)
+	var b strings.Builder
+	b.WriteString(p.Name)
+	b.WriteRune(' ')
+	b.WriteRune('—')
+	b.WriteRune(' ')
+	b.WriteString(p.State)
+	return b.String()
 }
 
 // AddPluginIfNotExist ...
