@@ -157,7 +157,7 @@ func Send(chatID int64, message string) error {
 }
 
 // SendMarkdown ...
-func SendMarkdown(chatID int64, replyTo int, message string, isMarkdown bool) error {
+func SendMarkdown(chatID int64, replyTo int, message string) error {
 	return SendCustom(chatID, replyTo, message, true)
 }
 

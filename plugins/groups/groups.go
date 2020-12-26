@@ -99,7 +99,17 @@ func groupList(update *tgbotapi.Update, args string) (bool, error) {
 		var groupsList []string
 
 		for _, u := range groups {
-			groupsList = append(groupsList, "• "+u.String())
+			groupsList = append(groupsList, "* "+u.String())
+
+			groupchats, err := database.GetGroupchatsByGroupID(plugins.DB, u.ID)
+			if err != nil {
+				return true, err
+			}
+			if len(groupchats) > 0 {
+				for _, c := range groupchats {
+					groupsList = append(groupsList, "    * "+c.String())
+				}
+			}
 		}
 
 		return true, telegram.Send(update.Message.Chat.ID, strings.Join(groupsList, "\n"))

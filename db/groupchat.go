@@ -69,6 +69,32 @@ ORDER BY
 	return groupchats, err
 }
 
+// GetGroupchatsByGroupID ...
+func GetGroupchatsByGroupID(db *sql.DB, groupID int64) (groupchats []*Groupchat, err error) {
+	var returnModel Groupchat
+	sql := `SELECT
+	*
+FROM
+	groupchats
+WHERE
+	id IN (SELECT groupchat_id FROM groups_groupchats WHERE group_id = ?)
+ORDER BY
+	state, title;`
+
+	result, err := QuerySQLList(db, returnModel, sql, groupID)
+	if err != nil {
+		return groupchats, err
+	}
+
+	for _, item := range result {
+		if returnModel, ok := item.Interface().(*Groupchat); ok {
+			groupchats = append(groupchats, returnModel)
+		}
+	}
+
+	return groupchats, err
+}
+
 // AddGroupChatIfNotExist ...
 func AddGroupChatIfNotExist(db *sql.DB, groupchat *Groupchat) (*Groupchat, error) {
 	var returnModel Groupchat
