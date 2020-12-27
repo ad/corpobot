@@ -41,6 +41,10 @@ func (m *Plugin) Run(update *tgbotapi.Update) (bool, error) {
 	args := strings.TrimSpace(update.Message.CommandArguments())
 
 	if update.Message.Command() == "broadcast" {
+		if args == "" {
+			return true, telegram.Send(update.Message.Chat.ID, "failed: empty message")
+		}
+
 		users, err := database.GetUsers(plugins.DB, []string{})
 		if err != nil {
 			return true, telegram.Send(update.Message.Chat.ID, err.Error())
@@ -67,6 +71,10 @@ func (m *Plugin) Run(update *tgbotapi.Update) (bool, error) {
 	if update.Message.Command() == "message" {
 		errorString := "failed: you must provide user id message with a new line between them"
 		params := strings.Split(args, "\n")
+
+		if len(params) != 2 {
+			return true, telegram.Send(update.Message.Chat.ID, "failed: empty message")
+		}
 
 		userIDstring, message := strings.TrimSpace(params[0]), strings.TrimSpace(params[1])
 
