@@ -36,62 +36,103 @@ func (m *Plugin) OnStop() {
 
 func (m *Plugin) Run(update *tgbotapi.Update, command string, user *database.User) (bool, error) {
 	if plugins.CheckIfCommandIsAllowed(command, "pluginlist", user.Role) {
-		return true, ListPlugins(update)
+		replyKeyboard := ListPlugins(update, user)
+		return true, telegram.SendCustom(user.TelegramID, 0, "Choose action", false, &replyKeyboard)
 	}
 
 	if plugins.CheckIfCommandIsAllowed(command, "pluginenable", user.Role) {
 		args := telegram.GetArguments(update)
-		if plugins.EnablePlugin(args) {
-			plugin := &database.Plugin{
-				Name:  args,
-				State: "enabled",
-			}
+		plugin := &database.Plugin{
+			Name:  args,
+			State: "enabled",
+		}
 
-			_, err := database.UpdatePluginState(plugins.DB, plugin)
-			if err != nil {
-				return true, telegram.Send(user.TelegramID, "failed: "+err.Error())
+		_, err := database.UpdatePluginState(plugins.DB, plugin)
+		if err != nil {
+			return true, telegram.Send(user.TelegramID, "failed: "+err.Error())
+		}
+		if plugins.EnablePlugin(args) {
+			if update.CallbackQuery != nil {
+				_, err := plugins.Bot.AnswerCallbackQuery(tgbotapi.NewCallback(update.CallbackQuery.ID, args+" enabled"))
+				if err != nil {
+					dlog.Errorln(err.Error())
+				}
+
+				replyKeyboard := ListPlugins(update, user)
+				edit := tgbotapi.EditMessageReplyMarkupConfig{
+					BaseEdit: tgbotapi.BaseEdit{
+						ChatID:      update.CallbackQuery.Message.Chat.ID,
+						MessageID:   update.CallbackQuery.Message.MessageID,
+						ReplyMarkup: &replyKeyboard,
+					},
+				}
+
+				_, err = plugins.Bot.Send(edit)
+				return true, err
 			}
 
 			return true, telegram.Send(user.TelegramID, args+" enabled")
 		}
 
-		return true, ListPlugins(update)
+		replyKeyboard := ListPlugins(update, user)
+		return true, telegram.SendCustom(user.TelegramID, 0, "Choose action", false, &replyKeyboard)
 	}
 
 	if plugins.CheckIfCommandIsAllowed(command, "plugindisable", user.Role) {
 		args := telegram.GetArguments(update)
-		if plugins.DisablePlugin(args) {
-			plugin := &database.Plugin{
-				Name:  args,
-				State: "disabled",
-			}
+		plugin := &database.Plugin{
+			Name:  args,
+			State: "disabled",
+		}
 
-			_, err := database.UpdatePluginState(plugins.DB, plugin)
-			if err != nil {
-				return true, telegram.Send(user.TelegramID, "failed: "+err.Error())
+		_, err := database.UpdatePluginState(plugins.DB, plugin)
+		if err != nil {
+			return true, telegram.Send(user.TelegramID, "failed: "+err.Error())
+		}
+		if plugins.DisablePlugin(args) {
+			if update.CallbackQuery != nil {
+				_, err := plugins.Bot.AnswerCallbackQuery(tgbotapi.NewCallback(update.CallbackQuery.ID, args+" disabled"))
+				if err != nil {
+					dlog.Errorln(err.Error())
+				}
+				replyKeyboard := ListPlugins(update, user)
+				edit := tgbotapi.EditMessageReplyMarkupConfig{
+					BaseEdit: tgbotapi.BaseEdit{
+						ChatID:      update.CallbackQuery.Message.Chat.ID,
+						MessageID:   update.CallbackQuery.Message.MessageID,
+						ReplyMarkup: &replyKeyboard,
+					},
+				}
+
+				_, err = plugins.Bot.Send(edit)
+				return true, err
 			}
 
 			return true, telegram.Send(user.TelegramID, args+" disabled")
 		}
-
-		return true, ListPlugins(update)
+		replyKeyboard := ListPlugins(update, user)
+		return true, telegram.SendCustom(user.TelegramID, 0, "Choose action", false, &replyKeyboard)
 	}
 
 	return false, nil
 }
 
-func ListPlugins(update *tgbotapi.Update) error {
+func ListPlugins(update *tgbotapi.Update, user *database.User) tgbotapi.InlineKeyboardMarkup {
 	buttons := make([][]tgbotapi.InlineKeyboardButton, 0)
 
-	for k := range plugins.Plugins {
-		buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("disable "+k, "/plugindisable "+k)))
+	plugins, err := database.GetPlugins(plugins.DB)
+	if err != nil {
+		dlog.Errorln(err.Error())
+		return tgbotapi.NewInlineKeyboardMarkup(buttons...)
 	}
 
-	for k := range plugins.DisabledPlugins {
-		buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("enable "+k, "/pluginenable "+k)))
+	for _, plugin := range plugins {
+		if plugin.State == "enabled" {
+			buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("disable "+plugin.Name, "/plugindisable "+plugin.Name)))
+		} else {
+			buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("enable "+plugin.Name, "/pluginenable "+plugin.Name)))
+		}
 	}
 
-	replyKeyboard := tgbotapi.NewInlineKeyboardMarkup(buttons...)
-
-	return telegram.SendCustom(update.Message.Chat.ID, 0, "Choose action", false, &replyKeyboard)
+	return tgbotapi.NewInlineKeyboardMarkup(buttons...)
 }

@@ -40,6 +40,7 @@ func RegisterPlugin(p TelegramPlugin) {
 // Disable a plugin
 func DisablePlugin(plugin string) bool {
 	plugin = strings.TrimSpace(plugin)
+
 	_, exists := Plugins[plugin]
 	if exists {
 		DisabledPlugins[plugin] = Plugins[plugin]
@@ -73,9 +74,9 @@ func EnablePlugin(plugin string) bool {
 	Plugins[plugin] = PluginInstance
 	if InstanceExists {
 		delete(DisabledPlugins, plugin)
-		PluginInstance.OnStart()
+		dlog.Debugln("[" + plugin + "] enabled ")
 
-		dlog.Debugln(plugin + " enabled ")
+		PluginInstance.OnStart()
 		return true
 	}
 	return false

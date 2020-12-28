@@ -83,3 +83,27 @@ func UpdatePluginState(db *sql.DB, plugin *Plugin) (int64, error) {
 
 	return rows, nil
 }
+
+// GetPlugins ...
+func GetPlugins(db *sql.DB) (plugins []*Plugin, err error) {
+	var returnModel Plugin
+	sql := `SELECT
+	*
+FROM
+	plugins
+ORDER BY
+	name;`
+
+	result, err := QuerySQLList(db, returnModel, sql, nil)
+	if err != nil {
+		return plugins, err
+	}
+
+	for _, item := range result {
+		if returnModel, ok := item.Interface().(*Plugin); ok {
+			plugins = append(plugins, returnModel)
+		}
+	}
+
+	return plugins, err
+}
