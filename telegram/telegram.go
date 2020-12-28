@@ -75,7 +75,7 @@ func ProcessTelegramMessages(db *sql.DB, bot *tgbotapi.BotAPI, updates tgbotapi.
 		}
 
 		if update.Message.Text != "" {
-			dlog.Debugf("%s [%d] %s %#+v", update.Message.From.UserName, update.Message.From.ID, update.Message.Text, update.Message.Chat)
+			dlog.Debugf("%s [%d] %s", update.Message.From.UserName, update.Message.From.ID, update.Message.Text)
 
 			message := database.TelegramMessage{
 				TelegramID: update.Message.From.ID,
@@ -92,25 +92,26 @@ func ProcessTelegramMessages(db *sql.DB, bot *tgbotapi.BotAPI, updates tgbotapi.
 			}
 		}
 
-		// TODO: check if message from private chat
+		// check if message from private chat
+		if update.Message.Chat.Type == "private" {
+			if update.Message.Command() != "" {
+				if _, ok := plugins.Commands[update.Message.Command()]; ok {
+					for _, d := range plugins.Plugins {
+						upd := update
+						result, err := d.Run(&upd, user)
+						if err != nil {
+							dlog.Errorln(err)
+						}
 
-		if update.Message.Command() != "" {
-			if _, ok := plugins.Commands[update.Message.Command()]; ok {
-				for _, d := range plugins.Plugins {
-					upd := update
-					result, err := d.Run(&upd, user)
+						if result {
+							break
+						}
+					}
+				} else {
+					err := Send(update.Message.Chat.ID, "unknown command, use /help")
 					if err != nil {
 						dlog.Errorln(err)
 					}
-
-					if result {
-						break
-					}
-				}
-			} else {
-				err := Send(update.Message.Chat.ID, "unknown command, use /help")
-				if err != nil {
-					dlog.Errorln(err)
 				}
 			}
 		}
