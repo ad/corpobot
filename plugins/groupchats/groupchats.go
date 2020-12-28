@@ -25,11 +25,11 @@ func (m *Plugin) OnStart() {
 		return
 	}
 
-	plugins.RegisterCommand("groupchatlist", "...")
-	plugins.RegisterCommand("groupchatinvitegenerate", "...")
-	plugins.RegisterCommand("groupchatuserban", "...")
-	plugins.RegisterCommand("groupchatuserunban", "...")
-	plugins.RegisterCommand("groupchatmembers", "...")
+	plugins.RegisterCommand("groupchatlist", "...", []string{"member", "admin", "owner"})
+	plugins.RegisterCommand("groupchatinvitegenerate", "...", []string{"admin", "owner"})
+	plugins.RegisterCommand("groupchatuserban", "...", []string{"admin", "owner"})
+	plugins.RegisterCommand("groupchatuserunban", "...", []string{"admin", "owner"})
+	plugins.RegisterCommand("groupchatmembers", "...", []string{"admin", "owner"})
 }
 
 func (m *Plugin) OnStop() {
@@ -42,26 +42,26 @@ func (m *Plugin) OnStop() {
 	plugins.UnregisterCommand("groupchatmembers")
 }
 
-func (m *Plugin) Run(update *tgbotapi.Update) (bool, error) {
+func (m *Plugin) Run(update *tgbotapi.Update, user *database.User) (bool, error) {
 	args := strings.TrimSpace(update.Message.CommandArguments())
 
-	if update.Message.Command() == "groupchatlist" {
+	if plugins.CheckIfCommandIsAllowed(update.Message.Command(), "groupchatlist", user.Role) {
 		return groupchatList(update, args)
 	}
 
-	if update.Message.Command() == "groupchatsinvitegenerate" {
+	if plugins.CheckIfCommandIsAllowed(update.Message.Command(), "groupchatsinvitegenerate", user.Role) {
 		return groupchatInviteGenerate(update, args)
 	}
 
-	if update.Message.Command() == "groupchatuserban" {
+	if plugins.CheckIfCommandIsAllowed(update.Message.Command(), "groupchatuserban", user.Role) {
 		return groupchatUserBan(update, args)
 	}
 
-	if update.Message.Command() == "groupchatuserunban" {
+	if plugins.CheckIfCommandIsAllowed(update.Message.Command(), "groupchatuserunban", user.Role) {
 		return groupchatUserUnban(update, args)
 	}
 
-	if update.Message.Command() == "groupchatmembers" {
+	if plugins.CheckIfCommandIsAllowed(update.Message.Command(), "groupchatmembers", user.Role) {
 		return groupchatMembers(update, args)
 	}
 
@@ -69,8 +69,6 @@ func (m *Plugin) Run(update *tgbotapi.Update) (bool, error) {
 }
 
 func groupchatList(update *tgbotapi.Update, args string) (bool, error) {
-	// TODO: check user rights
-
 	groupchats, err := database.GetGroupchats(plugins.DB, strings.Fields(args))
 	if err != nil {
 		return true, err
@@ -90,8 +88,6 @@ func groupchatList(update *tgbotapi.Update, args string) (bool, error) {
 }
 
 func groupchatInviteGenerate(update *tgbotapi.Update, args string) (bool, error) {
-	// TODO: check user rights
-
 	if args == "" {
 		return true, telegram.Send(update.Message.Chat.ID, "failed: empty groupchat ID")
 	}
@@ -122,8 +118,6 @@ func groupchatInviteGenerate(update *tgbotapi.Update, args string) (bool, error)
 }
 
 func groupchatUserBan(update *tgbotapi.Update, args string) (bool, error) {
-	// TODO: check user rights
-
 	errorString := "failed: you must provide the IDs of the user ans groupchat with a new line between them"
 
 	params := strings.Split(args, "\n")
@@ -169,8 +163,6 @@ func groupchatUserBan(update *tgbotapi.Update, args string) (bool, error) {
 }
 
 func groupchatUserUnban(update *tgbotapi.Update, args string) (bool, error) {
-	// TODO: check user rights
-
 	errorString := "failed: you must provide the IDs of the user ans groupchat with a new line between them"
 
 	params := strings.Split(args, "\n")
@@ -209,8 +201,6 @@ func groupchatUserUnban(update *tgbotapi.Update, args string) (bool, error) {
 }
 
 func groupchatMembers(update *tgbotapi.Update, args string) (bool, error) {
-	// TODO: check user rights
-
 	errorString := "failed: you must provide the groupchat ID"
 
 	if args == "" {

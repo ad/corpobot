@@ -3,6 +3,7 @@ package echo
 import (
 	"github.com/ad/corpobot/plugins"
 
+	database "github.com/ad/corpobot/db"
 	telegram "github.com/ad/corpobot/telegram"
 	dlog "github.com/amoghe/distillog"
 	tgbotapi "gopkg.in/telegram-bot-api.v4"
@@ -20,7 +21,7 @@ func (m *Plugin) OnStart() {
 		return
 	}
 
-	plugins.RegisterCommand("echo", "example plugin")
+	plugins.RegisterCommand("echo", "example plugin", []string{"new", "member", "admin", "owner"})
 }
 
 func (m *Plugin) OnStop() {
@@ -29,8 +30,8 @@ func (m *Plugin) OnStop() {
 	plugins.UnregisterCommand("echo")
 }
 
-func (m *Plugin) Run(update *tgbotapi.Update) (bool, error) {
-	if update.Message.Command() == "echo" {
+func (m *Plugin) Run(update *tgbotapi.Update, user *database.User) (bool, error) {
+	if plugins.CheckIfCommandIsAllowed(update.Message.Command(), "echo", user.Role) {
 		return true, telegram.Send(update.Message.Chat.ID, update.Message.Text+" "+update.Message.CommandArguments())
 	}
 

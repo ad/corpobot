@@ -24,15 +24,15 @@ func (m *Plugin) OnStart() {
 		return
 	}
 
-	plugins.RegisterCommand("grouplist", "...")
-	plugins.RegisterCommand("groupcreate", "...")
-	plugins.RegisterCommand("grouprename", "...")
-	plugins.RegisterCommand("groupdelete", "...")
-	plugins.RegisterCommand("groupundelete", "...")
-	plugins.RegisterCommand("groupaddgroupchat", "...")
-	plugins.RegisterCommand("groupdeletegroupchat", "...")
-	plugins.RegisterCommand("groupadduser", "...")
-	plugins.RegisterCommand("groupdeleteuser", "...")
+	plugins.RegisterCommand("grouplist", "...", []string{"member", "admin", "owner"})
+	plugins.RegisterCommand("groupcreate", "...", []string{"admin", "owner"})
+	plugins.RegisterCommand("grouprename", "...", []string{"admin", "owner"})
+	plugins.RegisterCommand("groupdelete", "...", []string{"admin", "owner"})
+	plugins.RegisterCommand("groupundelete", "...", []string{"admin", "owner"})
+	plugins.RegisterCommand("groupaddgroupchat", "...", []string{"admin", "owner"})
+	plugins.RegisterCommand("groupdeletegroupchat", "...", []string{"admin", "owner"})
+	plugins.RegisterCommand("groupadduser", "...", []string{"admin", "owner"})
+	plugins.RegisterCommand("groupdeleteuser", "...", []string{"admin", "owner"})
 }
 
 func (m *Plugin) OnStop() {
@@ -49,38 +49,38 @@ func (m *Plugin) OnStop() {
 	plugins.UnregisterCommand("groupdeleteuser")
 }
 
-func (m *Plugin) Run(update *tgbotapi.Update) (bool, error) {
+func (m *Plugin) Run(update *tgbotapi.Update, user *database.User) (bool, error) {
 	args := strings.TrimSpace(update.Message.CommandArguments())
 
-	if update.Message.Command() == "grouplist" {
+	if plugins.CheckIfCommandIsAllowed(update.Message.Command(), "grouplist", user.Role) {
 		return groupList(update, args)
 	}
 
-	if update.Message.Command() == "groupcreate" {
+	if plugins.CheckIfCommandIsAllowed(update.Message.Command(), "groupcreate", user.Role) {
 		return groupCreate(update, args)
 	}
 
-	if update.Message.Command() == "grouprename" {
+	if plugins.CheckIfCommandIsAllowed(update.Message.Command(), "grouprename", user.Role) {
 		return groupRename(update, args)
 	}
 
-	if update.Message.Command() == "groupdelete" || update.Message.Command() == "groupundelete" {
+	if plugins.CheckIfCommandIsAllowed(update.Message.Command(), "groupdelete", user.Role) || plugins.CheckIfCommandIsAllowed(update.Message.Command(), "groupundelete", user.Role) {
 		return groupDeleteUndelete(update, args)
 	}
 
-	if update.Message.Command() == "groupaddgroupchat" {
+	if plugins.CheckIfCommandIsAllowed(update.Message.Command(), "groupaddgroupchat", user.Role) {
 		return groupAddGroupChat(update, args)
 	}
 
-	if update.Message.Command() == "groupdeletegroupchat" {
+	if plugins.CheckIfCommandIsAllowed(update.Message.Command(), "groupdeletegroupchat", user.Role) {
 		return groupDeleteGroupChat(update, args)
 	}
 
-	if update.Message.Command() == "groupadduser" {
+	if plugins.CheckIfCommandIsAllowed(update.Message.Command(), "groupadduser", user.Role) {
 		return groupAddUser(update, args)
 	}
 
-	if update.Message.Command() == "groupdeleteuser" {
+	if plugins.CheckIfCommandIsAllowed(update.Message.Command(), "groupdeleteuser", user.Role) {
 		return groupDeleteUser(update, args)
 	}
 
@@ -88,8 +88,6 @@ func (m *Plugin) Run(update *tgbotapi.Update) (bool, error) {
 }
 
 func groupList(update *tgbotapi.Update, args string) (bool, error) {
-	// TODO: check user rights
-
 	groups, err := database.GetGroups(plugins.DB, strings.Fields(args))
 	if err != nil {
 		return true, err
@@ -119,8 +117,6 @@ func groupList(update *tgbotapi.Update, args string) (bool, error) {
 }
 
 func groupCreate(update *tgbotapi.Update, args string) (bool, error) {
-	// TODO: check user rights
-
 	if args == "" {
 		return true, telegram.Send(update.Message.Chat.ID, "failed: empty group name")
 	}
@@ -138,8 +134,6 @@ func groupCreate(update *tgbotapi.Update, args string) (bool, error) {
 }
 
 func groupRename(update *tgbotapi.Update, args string) (bool, error) {
-	// TODO: check user rights
-
 	names := strings.Split(args, "\n")
 
 	if len(names) != 2 {
@@ -165,8 +159,6 @@ func groupRename(update *tgbotapi.Update, args string) (bool, error) {
 }
 
 func groupDeleteUndelete(update *tgbotapi.Update, args string) (bool, error) {
-	// TODO: check user rights
-
 	newState := "active"
 
 	if update.Message.Command() == "groupdelete" {
@@ -191,8 +183,6 @@ func groupDeleteUndelete(update *tgbotapi.Update, args string) (bool, error) {
 }
 
 func groupAddGroupChat(update *tgbotapi.Update, args string) (bool, error) {
-	// TODO: check user rights
-
 	params := strings.Split(args, "\n")
 
 	errorString := "failed: you must provide two lines (group name and groupchat id) with a new line between them"
@@ -231,8 +221,6 @@ func groupAddGroupChat(update *tgbotapi.Update, args string) (bool, error) {
 }
 
 func groupDeleteGroupChat(update *tgbotapi.Update, args string) (bool, error) {
-	// TODO: check user rights
-
 	params := strings.Split(args, "\n")
 
 	errorString := "failed: you must provide two lines (group name and groupchat id) with a new line between them"
@@ -271,8 +259,6 @@ func groupDeleteGroupChat(update *tgbotapi.Update, args string) (bool, error) {
 }
 
 func groupAddUser(update *tgbotapi.Update, args string) (bool, error) {
-	// TODO: check user rights
-
 	params := strings.Split(args, "\n")
 
 	errorString := "failed: you must provide two lines (group name and user id) with a new line between them"
@@ -311,8 +297,6 @@ func groupAddUser(update *tgbotapi.Update, args string) (bool, error) {
 }
 
 func groupDeleteUser(update *tgbotapi.Update, args string) (bool, error) {
-	// TODO: check user rights
-
 	params := strings.Split(args, "\n")
 
 	errorString := "failed: you must provide two lines (group name and user id) with a new line between them"

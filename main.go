@@ -24,7 +24,7 @@ import (
 	_ "github.com/ad/corpobot/plugins/users"
 )
 
-const version = "0.0.2"
+const version = "0.0.3"
 
 var (
 	err error

@@ -5,6 +5,7 @@ import (
 
 	"github.com/ad/corpobot/plugins"
 
+	database "github.com/ad/corpobot/db"
 	telegram "github.com/ad/corpobot/telegram"
 	dlog "github.com/amoghe/distillog"
 	tgbotapi "gopkg.in/telegram-bot-api.v4"
@@ -22,7 +23,7 @@ func (m *Plugin) OnStart() {
 		return
 	}
 
-	plugins.RegisterCommand("me", "...")
+	plugins.RegisterCommand("me", "...", []string{"new", "member", "admin", "owner"})
 }
 
 func (m *Plugin) OnStop() {
@@ -31,8 +32,8 @@ func (m *Plugin) OnStop() {
 	plugins.UnregisterCommand("me")
 }
 
-func (m *Plugin) Run(update *tgbotapi.Update) (bool, error) {
-	if update.Message.Command() == "me" {
+func (m *Plugin) Run(update *tgbotapi.Update, user *database.User) (bool, error) {
+	if plugins.CheckIfCommandIsAllowed(update.Message.Command(), "me", user.Role) {
 		msg := fmt.Sprintf("Hello %s, your ID: %d", update.Message.From.UserName, update.Message.From.ID)
 
 		return true, telegram.Send(update.Message.Chat.ID, msg)

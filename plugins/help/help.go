@@ -6,6 +6,7 @@ import (
 
 	"github.com/ad/corpobot/plugins"
 
+	database "github.com/ad/corpobot/db"
 	telegram "github.com/ad/corpobot/telegram"
 	dlog "github.com/amoghe/distillog"
 	tgbotapi "gopkg.in/telegram-bot-api.v4"
@@ -23,7 +24,7 @@ func (m *Plugin) OnStart() {
 		return
 	}
 
-	plugins.RegisterCommand("help", "Display this help")
+	plugins.RegisterCommand("help", "Display this help", []string{"new", "member", "admin", "owner"})
 }
 
 func (m *Plugin) OnStop() {
@@ -32,8 +33,8 @@ func (m *Plugin) OnStop() {
 	plugins.UnregisterCommand("help")
 }
 
-func (m *Plugin) Run(update *tgbotapi.Update) (bool, error) {
-	if update.Message.Command() == "help" {
+func (m *Plugin) Run(update *tgbotapi.Update, user *database.User) (bool, error) {
+	if plugins.CheckIfCommandIsAllowed(update.Message.Command(), "help", user.Role) {
 		var mk []string
 
 		for k := range plugins.Commands {
@@ -44,9 +45,11 @@ func (m *Plugin) Run(update *tgbotapi.Update) (bool, error) {
 		var buffer bytes.Buffer
 
 		for _, v := range mk {
-			_, err := buffer.WriteString("/" + v + " - " + plugins.Commands[v] + "\n")
-			if err != nil {
-				return true, err
+			if plugins.CheckIfCommandIsAllowed(v, v, user.Role) {
+				_, err := buffer.WriteString("/" + v + " - " + plugins.Commands[v].Description + "\n")
+				if err != nil {
+					return true, err
+				}
 			}
 		}
 

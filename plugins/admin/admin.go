@@ -23,9 +23,9 @@ func (m *Plugin) OnStart() {
 		return
 	}
 
-	plugins.RegisterCommand("pluginlist", "...")
-	plugins.RegisterCommand("pluginenable", "...")
-	plugins.RegisterCommand("plugindisable", "...")
+	plugins.RegisterCommand("pluginlist", "...", []string{"owner"})
+	plugins.RegisterCommand("pluginenable", "...", []string{"owner"})
+	plugins.RegisterCommand("plugindisable", "...", []string{"owner"})
 }
 
 func (m *Plugin) OnStop() {
@@ -36,12 +36,12 @@ func (m *Plugin) OnStop() {
 	plugins.UnregisterCommand("plugindisable")
 }
 
-func (m *Plugin) Run(update *tgbotapi.Update) (bool, error) {
-	if update.Message.Command() == "pluginlist" {
+func (m *Plugin) Run(update *tgbotapi.Update, user *database.User) (bool, error) {
+	if plugins.CheckIfCommandIsAllowed(update.Message.Command(), "pluginlist", user.Role) {
 		return true, ListPlugins(update)
 	}
 
-	if update.Message.Command() == "pluginenable" {
+	if plugins.CheckIfCommandIsAllowed(update.Message.Command(), "pluginenable", user.Role) {
 		args := update.Message.CommandArguments()
 		if plugins.EnablePlugin(args) {
 			plugin := &database.Plugin{
@@ -60,7 +60,7 @@ func (m *Plugin) Run(update *tgbotapi.Update) (bool, error) {
 		return true, ListPlugins(update)
 	}
 
-	if update.Message.Command() == "plugindisable" {
+	if plugins.CheckIfCommandIsAllowed(update.Message.Command(), "plugindisable", user.Role) {
 		args := update.Message.CommandArguments()
 		if plugins.DisablePlugin(args) {
 			plugin := &database.Plugin{

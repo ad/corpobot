@@ -26,8 +26,8 @@ func (m *Plugin) OnStart() {
 		return
 	}
 
-	plugins.RegisterCommand("broadcast", "...")
-	plugins.RegisterCommand("message", "...")
+	plugins.RegisterCommand("broadcast", "...", []string{"admin", "owner"})
+	plugins.RegisterCommand("message", "...", []string{"admin", "owner"})
 }
 
 func (m *Plugin) OnStop() {
@@ -37,10 +37,10 @@ func (m *Plugin) OnStop() {
 	plugins.UnregisterCommand("message")
 }
 
-func (m *Plugin) Run(update *tgbotapi.Update) (bool, error) {
+func (m *Plugin) Run(update *tgbotapi.Update, user *database.User) (bool, error) {
 	args := strings.TrimSpace(update.Message.CommandArguments())
 
-	if update.Message.Command() == "broadcast" {
+	if plugins.CheckIfCommandIsAllowed(update.Message.Command(), "broadcast", user.Role) {
 		if args == "" {
 			return true, telegram.Send(update.Message.Chat.ID, "failed: empty message")
 		}
@@ -68,7 +68,7 @@ func (m *Plugin) Run(update *tgbotapi.Update) (bool, error) {
 		return true, telegram.Send(update.Message.Chat.ID, args+" broadcast")
 	}
 
-	if update.Message.Command() == "message" {
+	if plugins.CheckIfCommandIsAllowed(update.Message.Command(), "message", user.Role) {
 		errorString := "failed: you must provide user id message with a new line between them"
 		params := strings.Split(args, "\n")
 

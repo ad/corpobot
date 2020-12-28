@@ -207,19 +207,6 @@ func QuerySQLList(db *sql.DB, returnModel interface{}, sql string, args ...inter
 
 // StoreTelegramMessage ...
 func StoreTelegramMessage(db *sql.DB, message *TelegramMessage) error {
-	user := &User{
-		TelegramID: message.TelegramID,
-		FirstName:  message.FirstName,
-		LastName:   message.LastName,
-		UserName:   message.UserName,
-		IsBot:      message.IsBot,
-	}
-
-	_, err := AddUserIfNotExist(db, user)
-	if err != nil && err.Error() != UserAlreadyExists {
-		return err
-	}
-
 	_, err2 := db.Exec(
 		"INSERT INTO telegram_messages (telegram_id, message, created_at) VALUES (?, ?, ?);",
 		message.TelegramID,

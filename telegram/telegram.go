@@ -60,6 +60,20 @@ func ProcessTelegramMessages(db *sql.DB, bot *tgbotapi.BotAPI, updates tgbotapi.
 			continue
 		}
 
+		user := &database.User{
+			TelegramID: update.Message.From.ID,
+			FirstName:  update.Message.From.FirstName,
+			LastName:   update.Message.From.LastName,
+			UserName:   update.Message.From.UserName,
+			IsBot:      update.Message.From.IsBot,
+		}
+
+		user, err := database.AddUserIfNotExist(db, user)
+		if err != nil && err.Error() != database.UserAlreadyExists {
+			dlog.Errorln(err.Error())
+			continue
+		}
+
 		if update.Message.Text != "" {
 			dlog.Debugf("%s [%d] %s", update.Message.From.UserName, update.Message.From.ID, update.Message.Text)
 
@@ -78,11 +92,13 @@ func ProcessTelegramMessages(db *sql.DB, bot *tgbotapi.BotAPI, updates tgbotapi.
 			}
 		}
 
+		// TODO: check if message from private chat
+
 		if update.Message.Command() != "" {
 			if _, ok := plugins.Commands[update.Message.Command()]; ok {
 				for _, d := range plugins.Plugins {
 					upd := update
-					result, err := d.Run(&upd)
+					result, err := d.Run(&upd, user)
 					if err != nil {
 						dlog.Errorln(err)
 					}

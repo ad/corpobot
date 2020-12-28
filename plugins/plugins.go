@@ -12,16 +12,22 @@ import (
 
 // TelegramPlugin ...
 type TelegramPlugin interface {
-	Run(update *tgbotapi.Update) (bool, error)
+	Run(update *tgbotapi.Update, user *database.User) (bool, error)
 	OnStart()
 	OnStop()
+}
+
+// Command ...
+type Command struct {
+	Description string          `sql:"description"`
+	Roles       map[string]bool `sql:"roles"`
 }
 
 // These are are registered plugins
 var (
 	Plugins         = map[string]TelegramPlugin{}
 	DisabledPlugins = map[string]TelegramPlugin{}
-	Commands        = make(map[string]string)
+	Commands        = make(map[string]Command)
 	Bot             *tgbotapi.BotAPI
 	DB              *sql.DB
 )
@@ -96,14 +102,32 @@ func CheckIfPluginDisabled(name, state string) bool {
 	return true
 }
 
+func CheckIfCommandIsAllowed(command, command2, role string) bool {
+	if command == command2 {
+		if _, ok := Commands[command]; ok {
+			roles := Commands[command].Roles
+			if _, ok2 := roles[role]; ok2 {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
 // KeyOf ...
 func KeyOf(p TelegramPlugin) string {
 	return strings.TrimPrefix(reflect.TypeOf(p).String(), "*")
 }
 
 // Register a Command exported by a plugin
-func RegisterCommand(command string, description string) {
-	Commands[command] = description
+func RegisterCommand(command string, description string, roles []string) {
+	r := make(map[string]bool)
+	for _, v := range roles {
+		r[v] = true
+	}
+
+	Commands[command] = Command{Description: description, Roles: r}
 }
 
 // UnRegister a Command exported by a plugin

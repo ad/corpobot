@@ -23,14 +23,12 @@ func (m *Plugin) OnStart() {
 		return
 	}
 
-	plugins.RegisterCommand("userlist", "...")
-	plugins.RegisterCommand("userpromote", "...")
-	plugins.RegisterCommand("userblock", "...")
-	plugins.RegisterCommand("userdelete", "...")
-	plugins.RegisterCommand("userunblock", "...")
-	plugins.RegisterCommand("userundelete", "...")
-	// plugins.RegisterCommand("userban", "...")
-	// plugins.RegisterCommand("userunban", "...")
+	plugins.RegisterCommand("userlist", "...", []string{"member", "admin", "owner"})
+	plugins.RegisterCommand("userpromote", "...", []string{"admin", "owner"})
+	plugins.RegisterCommand("userblock", "...", []string{"admin", "owner"})
+	plugins.RegisterCommand("userdelete", "...", []string{"admin", "owner"})
+	plugins.RegisterCommand("userunblock", "...", []string{"admin", "owner"})
+	plugins.RegisterCommand("userundelete", "...", []string{"admin", "owner"})
 }
 
 func (m *Plugin) OnStop() {
@@ -42,14 +40,10 @@ func (m *Plugin) OnStop() {
 	plugins.UnregisterCommand("userdelete")
 	plugins.UnregisterCommand("userunblock")
 	plugins.UnregisterCommand("userundelete")
-	// plugins.UnregisterCommand("userban")
-	// plugins.UnregisterCommand("userunban")
 }
 
-func (m *Plugin) Run(update *tgbotapi.Update) (bool, error) {
-	if update.Message.Command() == "userlist" {
-		// TODO: check user rights
-
+func (m *Plugin) Run(update *tgbotapi.Update, user *database.User) (bool, error) {
+	if plugins.CheckIfCommandIsAllowed(update.Message.Command(), "userlist", user.Role) {
 		args := update.Message.CommandArguments()
 
 		users, err := database.GetUsers(plugins.DB, strings.Fields(args))
@@ -70,9 +64,7 @@ func (m *Plugin) Run(update *tgbotapi.Update) (bool, error) {
 		return true, telegram.Send(update.Message.Chat.ID, "user list is empty")
 	}
 
-	if update.Message.Command() == "userblock" || update.Message.Command() == "userunblock" {
-		// TODO: check user rights
-
+	if plugins.CheckIfCommandIsAllowed(update.Message.Command(), "userblock", user.Role) || plugins.CheckIfCommandIsAllowed(update.Message.Command(), "userunblock", user.Role) {
 		newRole := "member"
 
 		if update.Message.Command() == "userblock" {
@@ -81,12 +73,12 @@ func (m *Plugin) Run(update *tgbotapi.Update) (bool, error) {
 
 		args := strings.TrimLeft(update.Message.CommandArguments(), "@")
 
-		user := &database.User{
+		u := &database.User{
 			UserName: args,
 			Role:     newRole,
 		}
 
-		rows, err := database.UpdateUserRole(plugins.DB, user)
+		rows, err := database.UpdateUserRole(plugins.DB, u)
 		if err != nil {
 			return true, err
 		}
@@ -98,9 +90,7 @@ func (m *Plugin) Run(update *tgbotapi.Update) (bool, error) {
 		return true, telegram.Send(update.Message.Chat.ID, update.Message.Command()+" success")
 	}
 
-	if update.Message.Command() == "userdelete" || update.Message.Command() == "userundelete" {
-		// TODO: check user rights
-
+	if plugins.CheckIfCommandIsAllowed(update.Message.Command(), "userdelete", user.Role) || plugins.CheckIfCommandIsAllowed(update.Message.Command(), "userundelete", user.Role) {
 		newRole := "member"
 
 		if update.Message.Command() == "userdelete" {
@@ -109,12 +99,12 @@ func (m *Plugin) Run(update *tgbotapi.Update) (bool, error) {
 
 		args := strings.TrimLeft(update.Message.CommandArguments(), "@")
 
-		user := &database.User{
+		u := &database.User{
 			UserName: args,
 			Role:     newRole,
 		}
 
-		rows, err := database.UpdateUserRole(plugins.DB, user)
+		rows, err := database.UpdateUserRole(plugins.DB, u)
 		if err != nil {
 			return true, err
 		}
@@ -125,14 +115,6 @@ func (m *Plugin) Run(update *tgbotapi.Update) (bool, error) {
 
 		return true, telegram.Send(update.Message.Chat.ID, update.Message.Command()+" success")
 	}
-
-	// if update.Message.Command() == "userban" {
-	// 	// https://core.telegram.org/bots/api#kickchatmember
-	// }
-
-	// if update.Message.Command() == "userunban" {
-	// 	// https://core.telegram.org/bots/api#unbanchatmember
-	// }
 
 	return false, nil
 }
