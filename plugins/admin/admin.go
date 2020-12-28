@@ -1,8 +1,6 @@
 package admin
 
 import (
-	"bytes"
-
 	"github.com/ad/corpobot/plugins"
 
 	database "github.com/ad/corpobot/db"
@@ -83,22 +81,17 @@ func (m *Plugin) Run(update *tgbotapi.Update, user *database.User) (bool, error)
 }
 
 func ListPlugins(update *tgbotapi.Update) error {
-	var loaded bytes.Buffer
-	var unloaded bytes.Buffer
+	buttons := make([][]tgbotapi.KeyboardButton, 0)
 
 	for k := range plugins.Plugins {
-		_, err := loaded.WriteString("\t" + k + "\n")
-		if err != nil {
-			return err
-		}
+		buttons = append(buttons, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("/plugindisable "+k)))
 	}
 
 	for k := range plugins.DisabledPlugins {
-		_, err := unloaded.WriteString("\t" + k + "\n")
-		if err != nil {
-			return err
-		}
+		buttons = append(buttons, tgbotapi.NewKeyboardButtonRow(tgbotapi.NewKeyboardButton("/pluginenable "+k)))
 	}
 
-	return telegram.Send(update.Message.Chat.ID, "Enabled plugins:\n"+loaded.String()+"\nDisabled plugins:\n"+unloaded.String())
+	replyKeyboard := tgbotapi.NewReplyKeyboard(buttons...)
+
+	return telegram.SendCustom(update.Message.Chat.ID, 0, "test", false, &replyKeyboard)
 }

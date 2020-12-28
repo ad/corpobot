@@ -75,7 +75,7 @@ func ProcessTelegramMessages(db *sql.DB, bot *tgbotapi.BotAPI, updates tgbotapi.
 		}
 
 		if update.Message.Text != "" {
-			dlog.Debugf("%s [%d] %s", update.Message.From.UserName, update.Message.From.ID, update.Message.Text)
+			dlog.Debugf("%s [%d] %s %#+v", update.Message.From.UserName, update.Message.From.ID, update.Message.Text, update.Message.Chat)
 
 			message := database.TelegramMessage{
 				TelegramID: update.Message.From.ID,
@@ -169,21 +169,21 @@ func updateGroupChat(db *sql.DB, message *tgbotapi.Message) {
 
 // SendPlain ...
 func Send(chatID int64, message string) error {
-	return SendCustom(chatID, 0, message, false)
+	return SendCustom(chatID, 0, message, false, nil)
 }
 
 // SendMarkdown ...
 func SendMarkdown(chatID int64, replyTo int, message string) error {
-	return SendCustom(chatID, replyTo, message, true)
+	return SendCustom(chatID, replyTo, message, true, nil)
 }
 
 // SendPlain ...
 func SendPlain(chatID int64, replyTo int, message string) error {
-	return SendCustom(chatID, replyTo, message, false)
+	return SendCustom(chatID, replyTo, message, false, nil)
 }
 
 // Send ...
-func SendCustom(chatID int64, replyTo int, message string, isMarkdown bool) error {
+func SendCustom(chatID int64, replyTo int, message string, isMarkdown bool, replyMarkup *tgbotapi.ReplyKeyboardMarkup) error {
 	msg := tgbotapi.NewMessage(chatID, "")
 	if isMarkdown {
 		msg.ParseMode = "Markdown"
@@ -192,6 +192,12 @@ func SendCustom(chatID int64, replyTo int, message string, isMarkdown bool) erro
 	msg.DisableWebPagePreview = true
 	if replyTo != 0 {
 		msg.ReplyToMessageID = replyTo
+	}
+
+	if replyMarkup != nil {
+		msg.ReplyMarkup = replyMarkup
+	} else {
+		msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
 	}
 
 	_, err := plugins.Bot.Send(msg)
