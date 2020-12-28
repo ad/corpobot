@@ -33,8 +33,8 @@ func (m *Plugin) OnStop() {
 	plugins.UnregisterCommand("help")
 }
 
-func (m *Plugin) Run(update *tgbotapi.Update, user *database.User) (bool, error) {
-	if plugins.CheckIfCommandIsAllowed(update.Message.Command(), "help", user.Role) {
+func (m *Plugin) Run(update *tgbotapi.Update, command string, user *database.User) (bool, error) {
+	if plugins.CheckIfCommandIsAllowed(command, "help", user.Role) {
 		var mk []string
 
 		for k := range plugins.Commands {
@@ -53,7 +53,7 @@ func (m *Plugin) Run(update *tgbotapi.Update, user *database.User) (bool, error)
 			}
 		}
 
-		return true, telegram.Send(update.Message.Chat.ID, "Those are my commands: \n"+buffer.String())
+		return true, telegram.Send(user.TelegramID, "Those are my commands: \n"+buffer.String())
 	}
 
 	return false, nil

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"strings"
 	"time"
 
 	database "github.com/ad/corpobot/db"
@@ -56,16 +57,29 @@ func ProcessTelegramMessages(db *sql.DB, bot *tgbotapi.BotAPI, updates tgbotapi.
 	for update := range updates {
 		updateGroupChat(db, update.Message)
 
-		if update.Message == nil { // ignore any non-Message Updates
-			continue
-		}
+		var user *database.User
 
-		user := &database.User{
-			TelegramID: update.Message.From.ID,
-			FirstName:  update.Message.From.FirstName,
-			LastName:   update.Message.From.LastName,
-			UserName:   update.Message.From.UserName,
-			IsBot:      update.Message.From.IsBot,
+		if update.CallbackQuery != nil {
+			user = &database.User{
+				TelegramID: int64(update.CallbackQuery.From.ID),
+				FirstName:  update.CallbackQuery.From.FirstName,
+				LastName:   update.CallbackQuery.From.LastName,
+				UserName:   update.CallbackQuery.From.UserName,
+				IsBot:      update.CallbackQuery.From.IsBot,
+			}
+			dlog.Debugf("%s [%d] %s", update.CallbackQuery.From.UserName, update.CallbackQuery.From.ID, update.CallbackQuery.Data)
+		}
+		if update.Message != nil {
+			user = &database.User{
+				TelegramID: int64(update.Message.From.ID),
+				FirstName:  update.Message.From.FirstName,
+				LastName:   update.Message.From.LastName,
+				UserName:   update.Message.From.UserName,
+				IsBot:      update.Message.From.IsBot,
+			}
+		}
+		if update.CallbackQuery == nil && update.Message == nil {
+			continue
 		}
 
 		user, err := database.AddUserIfNotExist(db, user)
@@ -74,7 +88,7 @@ func ProcessTelegramMessages(db *sql.DB, bot *tgbotapi.BotAPI, updates tgbotapi.
 			continue
 		}
 
-		if update.Message.Text != "" {
+		if update.Message != nil && update.Message.Text != "" {
 			dlog.Debugf("%s [%d] %s", update.Message.From.UserName, update.Message.From.ID, update.Message.Text)
 
 			message := database.TelegramMessage{
@@ -92,27 +106,46 @@ func ProcessTelegramMessages(db *sql.DB, bot *tgbotapi.BotAPI, updates tgbotapi.
 			}
 		}
 
-		// check if message from private chat
-		if update.Message.Chat.Type == "private" {
-			if update.Message.Command() != "" {
-				if _, ok := plugins.Commands[update.Message.Command()]; ok {
-					for _, d := range plugins.Plugins {
-						upd := update
-						result, err := d.Run(&upd, user)
-						if err != nil {
-							dlog.Errorln(err)
-						}
+		ProcessTelegramCommand(&update, user)
+	}
+}
 
-						if result {
-							break
-						}
-					}
-				} else {
-					err := Send(update.Message.Chat.ID, "unknown command, use /help")
-					if err != nil {
-						dlog.Errorln(err)
-					}
+// ProcessTelegramCommand ...
+func ProcessTelegramCommand(update *tgbotapi.Update, user *database.User) {
+	// check if message from private chat
+	if update.Message != nil && update.Message.Chat.Type != "private" {
+		return
+	}
+
+	command := ""
+	if update.CallbackQuery != nil {
+		command = strings.TrimLeft(update.CallbackQuery.Data, "/")
+		commands := strings.Split(command, " ")
+		if len(commands) > 1 {
+			command = commands[0]
+		}
+	}
+
+	if command == "" && update.Message.Command() != "" {
+		command = update.Message.Command()
+	}
+
+	if command != "" {
+		if _, ok := plugins.Commands[command]; ok {
+			for _, d := range plugins.Plugins {
+				result, err := d.Run(update, command, user)
+				if err != nil {
+					dlog.Errorln(err)
 				}
+
+				if result {
+					break
+				}
+			}
+		} else {
+			err := Send(user.TelegramID, "unknown command "+command+", use /help")
+			if err != nil {
+				dlog.Errorln(err)
 			}
 		}
 	}
@@ -184,7 +217,7 @@ func SendPlain(chatID int64, replyTo int, message string) error {
 }
 
 // Send ...
-func SendCustom(chatID int64, replyTo int, message string, isMarkdown bool, replyMarkup *tgbotapi.ReplyKeyboardMarkup) error {
+func SendCustom(chatID int64, replyTo int, message string, isMarkdown bool, replyMarkup *tgbotapi.InlineKeyboardMarkup) error {
 	msg := tgbotapi.NewMessage(chatID, "")
 	if isMarkdown {
 		msg.ParseMode = "Markdown"
@@ -203,4 +236,20 @@ func SendCustom(chatID int64, replyTo int, message string, isMarkdown bool, repl
 
 	_, err := plugins.Bot.Send(msg)
 	return err
+}
+
+func GetArguments(update *tgbotapi.Update) string {
+	if update.CallbackQuery != nil {
+		command := strings.TrimLeft(update.CallbackQuery.Data, "/")
+		commands := strings.Split(command, " ")
+		if len(commands) > 1 {
+			return strings.TrimSpace(strings.Join(commands[1:], ""))
+		}
+	}
+
+	if update.Message != nil && update.Message.CommandArguments() != "" {
+		return strings.TrimSpace(update.Message.CommandArguments())
+	}
+
+	return ""
 }

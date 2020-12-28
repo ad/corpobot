@@ -20,7 +20,7 @@ type User struct {
 	FirstName  string    `sql:"first_name"`
 	LastName   string    `sql:"last_name"`
 	UserName   string    `sql:"user_name"`
-	TelegramID int       `sql:"telegram_id"`
+	TelegramID int64     `sql:"telegram_id"`
 	IsBot      bool      `sql:"is_bot"`
 	Role       string    `sql:"role"`
 	CreatedAt  time.Time `sql:"created_at"`
@@ -36,7 +36,7 @@ func (u *User) String() string {
 	b.WriteString(u.LastName)
 	b.WriteRune(' ')
 	b.WriteRune('[')
-	b.WriteString(strconv.Itoa(u.TelegramID))
+	b.WriteString(strconv.FormatInt(u.TelegramID, 10))
 	b.WriteRune(']')
 	b.WriteRune(' ')
 	b.WriteRune('(')

@@ -12,7 +12,7 @@ import (
 
 // TelegramPlugin ...
 type TelegramPlugin interface {
-	Run(update *tgbotapi.Update, user *database.User) (bool, error)
+	Run(update *tgbotapi.Update, command string, user *database.User) (bool, error)
 	OnStart()
 	OnStop()
 }
@@ -93,6 +93,8 @@ func CheckIfPluginDisabled(name, state string) bool {
 	}
 
 	if plugin.State != "enabled" {
+		DisabledPlugins[name] = Plugins[name]
+		delete(Plugins, name)
 		dlog.Debugln("[" + name + "] Disabled")
 		return false
 	}

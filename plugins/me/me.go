@@ -32,11 +32,11 @@ func (m *Plugin) OnStop() {
 	plugins.UnregisterCommand("me")
 }
 
-func (m *Plugin) Run(update *tgbotapi.Update, user *database.User) (bool, error) {
-	if plugins.CheckIfCommandIsAllowed(update.Message.Command(), "me", user.Role) {
+func (m *Plugin) Run(update *tgbotapi.Update, command string, user *database.User) (bool, error) {
+	if plugins.CheckIfCommandIsAllowed(command, "me", user.Role) {
 		msg := fmt.Sprintf("Hello %s, your ID: %d", update.Message.From.UserName, update.Message.From.ID)
 
-		return true, telegram.Send(update.Message.Chat.ID, msg)
+		return true, telegram.Send(user.TelegramID, msg)
 	}
 
 	return false, nil
