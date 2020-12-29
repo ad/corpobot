@@ -35,7 +35,7 @@ func (m *Plugin) OnStop() {
 	plugins.UnregisterCommand("help")
 }
 
-func (m *Plugin) Run(update *tgbotapi.Update, command string, user *database.User) (bool, error) {
+func (m *Plugin) Run(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
 	if plugins.CheckIfCommandIsAllowed(command, "start", user.Role) {
 		return true, telegram.Send(user.TelegramID, "Hello! Send /help")
 	}

@@ -34,14 +34,13 @@ func (m *Plugin) OnStop() {
 	plugins.UnregisterCommand("plugindisable")
 }
 
-func (m *Plugin) Run(update *tgbotapi.Update, command string, user *database.User) (bool, error) {
+func (m *Plugin) Run(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
 	if plugins.CheckIfCommandIsAllowed(command, "pluginlist", user.Role) {
 		replyKeyboard := ListPlugins(update, user)
 		return true, telegram.SendCustom(user.TelegramID, 0, "Choose action", false, &replyKeyboard)
 	}
 
 	if plugins.CheckIfCommandIsAllowed(command, "pluginenable", user.Role) {
-		args := telegram.GetArguments(update)
 		plugin := &database.Plugin{
 			Name:  args,
 			State: "enabled",
@@ -79,7 +78,6 @@ func (m *Plugin) Run(update *tgbotapi.Update, command string, user *database.Use
 	}
 
 	if plugins.CheckIfCommandIsAllowed(command, "plugindisable", user.Role) {
-		args := telegram.GetArguments(update)
 		plugin := &database.Plugin{
 			Name:  args,
 			State: "disabled",

@@ -12,7 +12,7 @@ import (
 
 // TelegramPlugin ...
 type TelegramPlugin interface {
-	Run(update *tgbotapi.Update, command string, user *database.User) (bool, error)
+	Run(update *tgbotapi.Update, command, args string, user *database.User) (bool, error)
 	OnStart()
 	OnStop()
 }

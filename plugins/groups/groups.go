@@ -49,9 +49,7 @@ func (m *Plugin) OnStop() {
 	plugins.UnregisterCommand("groupdeleteuser")
 }
 
-func (m *Plugin) Run(update *tgbotapi.Update, command string, user *database.User) (bool, error) {
-	args := telegram.GetArguments(update)
-
+func (m *Plugin) Run(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
 	if plugins.CheckIfCommandIsAllowed(command, "grouplist", user.Role) {
 		return groupList(update, user, args)
 	}

@@ -133,8 +133,10 @@ func ProcessTelegramCommand(update *tgbotapi.Update, user *database.User) {
 
 	if command != "" {
 		if _, ok := plugins.Commands[command]; ok {
+			args := GetArguments(update)
+
 			for _, d := range plugins.Plugins {
-				result, err := d.Run(update, command, user)
+				result, err := d.Run(update, command, args, user)
 				if err != nil {
 					dlog.Errorln(err)
 				}

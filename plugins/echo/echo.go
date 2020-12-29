@@ -30,9 +30,9 @@ func (m *Plugin) OnStop() {
 	plugins.UnregisterCommand("echo")
 }
 
-func (m *Plugin) Run(update *tgbotapi.Update, command string, user *database.User) (bool, error) {
+func (m *Plugin) Run(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
 	if plugins.CheckIfCommandIsAllowed(command, "echo", user.Role) {
-		return true, telegram.Send(user.TelegramID, update.Message.Text+" "+update.Message.CommandArguments())
+		return true, telegram.Send(user.TelegramID, command+" "+args)
 	}
 
 	return false, nil
