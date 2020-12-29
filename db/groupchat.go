@@ -182,3 +182,16 @@ func GetGroupChatByTelegramID(db *sql.DB, groupchat *Groupchat) (*Groupchat, err
 
 	return nil, fmt.Errorf(GroupChatNotFound)
 }
+
+// GroupChatDelete ...
+func GroupChatDelete(db *sql.DB, groupchat *Groupchat) (bool, error) {
+	_, err := db.Exec(
+		"DELETE FROM groupchats WHERE TelegramID = ?;",
+		groupchat.TelegramID,
+	)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}

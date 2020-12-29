@@ -30,6 +30,7 @@ func (m *Plugin) OnStart() {
 	plugins.RegisterCommand("groupchatuserban", "...", []string{"admin", "owner"})
 	plugins.RegisterCommand("groupchatuserunban", "...", []string{"admin", "owner"})
 	plugins.RegisterCommand("groupchatmembers", "...", []string{"admin", "owner"})
+	plugins.RegisterCommand("groupchatdelete", "...", []string{"admin", "owner"})
 }
 
 func (m *Plugin) OnStop() {
@@ -40,6 +41,7 @@ func (m *Plugin) OnStop() {
 	plugins.UnregisterCommand("groupchatuserban")
 	plugins.UnregisterCommand("groupchatuserunban")
 	plugins.UnregisterCommand("groupchatmembers")
+	plugins.UnregisterCommand("groupchatdelete")
 }
 
 func (m *Plugin) Run(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
@@ -61,6 +63,10 @@ func (m *Plugin) Run(update *tgbotapi.Update, command, args string, user *databa
 
 	if plugins.CheckIfCommandIsAllowed(command, "groupchatmembers", user.Role) {
 		return groupchatMembers(update, user, args)
+	}
+
+	if plugins.CheckIfCommandIsAllowed(command, "groupchatdelete", user.Role) {
+		return groupchatDelete(update, user, args)
 	}
 
 	return false, nil
@@ -230,4 +236,33 @@ func groupchatMembers(update *tgbotapi.Update, user *database.User, args string)
 	}
 
 	return true, telegram.Send(user.TelegramID, "users not found")
+}
+
+func groupchatDelete(update *tgbotapi.Update, user *database.User, args string) (bool, error) {
+	errorString := "failed: you must provide the groupchat ID"
+
+	if args == "" {
+		return true, telegram.Send(user.TelegramID, errorString)
+	}
+
+	var groupchatID int64
+	n, err := strconv.ParseInt(args, 10, 64)
+	if err == nil {
+		groupchatID = n
+	}
+
+	if groupchatID == 0 {
+		return true, telegram.Send(user.TelegramID, errorString)
+	}
+
+	result, err := database.GroupChatDelete(plugins.DB, &database.Groupchat{TelegramID: groupchatID})
+	if err != nil {
+		return true, telegram.Send(user.TelegramID, "failed: "+err.Error())
+	}
+
+	if result {
+		return true, telegram.Send(user.TelegramID, "success")
+	}
+
+	return true, telegram.Send(user.TelegramID, "failed")
 }

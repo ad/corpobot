@@ -175,16 +175,11 @@ func AddGroupGroupChatIfNotExist(db *sql.DB, group *Group, groupchat *Groupchat)
 
 // DeleteGroupGroupChat ...
 func DeleteGroupGroupChat(db *sql.DB, group *Group, groupchat *Groupchat) (bool, error) {
-	res, err := db.Exec(
+	_, err := db.Exec(
 		"DELETE FROM groups_groupchats WHERE group_id = ? AND groupchat_id = ?;",
 		group.ID,
 		groupchat.ID,
 	)
-	if err != nil {
-		return false, err
-	}
-
-	_, err = res.LastInsertId()
 	if err != nil {
 		return false, err
 	}
@@ -213,16 +208,11 @@ func AddGroupUserIfNotExist(db *sql.DB, group *Group, user *User) (bool, error) 
 
 // DeleteGroupUser ...
 func DeleteGroupUser(db *sql.DB, group *Group, user *User) (bool, error) {
-	res, err := db.Exec(
+	_, err := db.Exec(
 		"DELETE FROM groups_Users WHERE group_id = ? AND user_id = ?;",
 		group.ID,
 		user.ID,
 	)
-	if err != nil {
-		return false, err
-	}
-
-	_, err = res.LastInsertId()
 	if err != nil {
 		return false, err
 	}
