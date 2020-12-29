@@ -3,6 +3,7 @@ package config
 import (
 	"flag"
 	"os"
+	"strconv"
 )
 
 // Config ...
@@ -13,6 +14,7 @@ type Config struct {
 	TelegramProxyUser     string
 	TelegramProxyPassword string
 	TelegramDebug         bool
+	BotOwnerID            int
 }
 
 // InitConfig ...
@@ -25,6 +27,7 @@ func InitConfig() *Config {
 	flag.StringVar(&config.TelegramProxyUser, "telegram_proxy_user", lookupEnvOrString("CORPOBOT_TELEGRAM_PROXY_USER", config.TelegramProxyUser), "telegramProxyUser")
 	flag.StringVar(&config.TelegramProxyPassword, "telegram_proxy_password", lookupEnvOrString("CORPOBOT_TELEGRAM_PROXY_PASSWORD", config.TelegramProxyPassword), "telegramProxyPassword")
 	flag.BoolVar(&config.TelegramDebug, "telegram_debug", lookupEnvOrBool("CORPOBOT_TELEGRAM_DEBUG", config.TelegramDebug), "telegramDebug")
+	flag.IntVar(&config.BotOwnerID, "bot_owner_id", lookupEnvOrInt("CORPOBOT_BOT_OWNER_ID", config.BotOwnerID), "botOwnerID")
 
 	flag.Parse()
 
@@ -38,14 +41,14 @@ func lookupEnvOrString(key string, defaultVal string) string {
 	return defaultVal
 }
 
-// func lookupEnvOrInt(key string, defaultVal int) int {
-// 	if val, ok := os.LookupEnv(key); ok {
-// 		if x, err := strconv.Atoi(val); err == nil {
-// 			return x
-// 		}
-// 	}
-// 	return defaultVal
-// }
+func lookupEnvOrInt(key string, defaultVal int) int {
+	if val, ok := os.LookupEnv(key); ok {
+		if x, err := strconv.Atoi(val); err == nil {
+			return x
+		}
+	}
+	return defaultVal
+}
 
 func lookupEnvOrBool(key string, defaultVal bool) bool {
 	if val, ok := os.LookupEnv(key); ok {

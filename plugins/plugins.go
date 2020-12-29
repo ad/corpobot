@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"strings"
 
+	config "github.com/ad/corpobot/config"
 	database "github.com/ad/corpobot/db"
 	dlog "github.com/amoghe/distillog"
 	sql "github.com/lazada/sqle"
@@ -23,13 +24,13 @@ type Command struct {
 	Roles       map[string]bool `sql:"roles"`
 }
 
-// These are are registered plugins
 var (
 	Plugins         = map[string]TelegramPlugin{}
 	DisabledPlugins = map[string]TelegramPlugin{}
 	Commands        = make(map[string]Command)
 	Bot             *tgbotapi.BotAPI
 	DB              *sql.DB
+	Config          *config.Config
 )
 
 // Register a Plugin

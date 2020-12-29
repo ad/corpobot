@@ -82,6 +82,14 @@ func ProcessTelegramMessages(db *sql.DB, bot *tgbotapi.BotAPI, updates tgbotapi.
 			continue
 		}
 
+		if user.Role == "" {
+			if user.TelegramID == int64(plugins.Config.BotOwnerID) {
+				user.Role = "owner"
+			} else {
+				user.Role = "new"
+			}
+		}
+		
 		user, err := database.AddUserIfNotExist(db, user)
 		if err != nil && err.Error() != database.UserAlreadyExists {
 			dlog.Errorln(err.Error())

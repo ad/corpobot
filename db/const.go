@@ -1,6 +1,5 @@
 package db
 
-// AlreadyExists ...
 const (
 	UserAlreadyExists = "user already exists"
 	UserNotFound      = "user not found"

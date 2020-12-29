@@ -6,8 +6,6 @@ import (
 	"reflect"
 	"time"
 
-	// "strings"
-
 	dlog "github.com/amoghe/distillog"
 	sql "github.com/lazada/sqle"
 

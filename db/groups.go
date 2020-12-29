@@ -1,9 +1,7 @@
 package db
 
 import (
-	// s "database/sql"
 	"fmt"
-	// "reflect"
 	"strings"
 	"time"
 

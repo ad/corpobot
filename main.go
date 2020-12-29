@@ -37,6 +37,7 @@ func main() {
 
 	// Init Config
 	config := config.InitConfig()
+	plugins.Config = config
 
 	log.SetFlags(0)
 

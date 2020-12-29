@@ -1,9 +1,7 @@
 package db
 
 import (
-	// s "database/sql"
 	"fmt"
-	// "reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -67,12 +65,13 @@ func AddUserIfNotExist(db *sql.DB, user *User) (*User, error) {
 	}
 
 	res, err := db.Exec(
-		"INSERT INTO users (first_name, last_name, user_name, telegram_id, is_bot) VALUES (?, ?, ?, ?, ?);",
+		"INSERT INTO users (first_name, last_name, user_name, telegram_id, is_bot, role) VALUES (?, ?, ?, ?, ?, ?);",
 		user.FirstName,
 		user.LastName,
 		user.UserName,
 		user.TelegramID,
 		user.IsBot,
+		user.Role,
 	)
 	if err != nil {
 		return nil, err
