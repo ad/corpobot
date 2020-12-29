@@ -89,7 +89,7 @@ func ProcessTelegramMessages(db *sql.DB, bot *tgbotapi.BotAPI, updates tgbotapi.
 				user.Role = "new"
 			}
 		}
-		
+
 		user, err := database.AddUserIfNotExist(db, user)
 		if err != nil && err.Error() != database.UserAlreadyExists {
 			dlog.Errorln(err.Error())
