@@ -67,7 +67,7 @@ func ProcessTelegramMessages(db *sql.DB, bot *tgbotapi.BotAPI, updates tgbotapi.
 				UserName:   update.CallbackQuery.From.UserName,
 				IsBot:      update.CallbackQuery.From.IsBot,
 			}
-			dlog.Debugf("%s [%d] %s", update.CallbackQuery.From.UserName, update.CallbackQuery.From.ID, update.CallbackQuery.Data)
+			dlog.Debugf(" <= %s [%d] %s", update.CallbackQuery.From.UserName, update.CallbackQuery.From.ID, update.CallbackQuery.Data)
 		}
 		if update.Message != nil {
 			user = &database.User{
@@ -89,7 +89,7 @@ func ProcessTelegramMessages(db *sql.DB, bot *tgbotapi.BotAPI, updates tgbotapi.
 		}
 
 		if update.Message != nil && update.Message.Text != "" {
-			dlog.Debugf("%s [%d] %s", update.Message.From.UserName, update.Message.From.ID, update.Message.Text)
+			dlog.Debugf(" <= %s [%d] %s", update.Message.From.UserName, update.Message.From.ID, update.Message.Text)
 
 			message := database.TelegramMessage{
 				TelegramID: update.Message.From.ID,
@@ -235,7 +235,23 @@ func SendCustom(chatID int64, replyTo int, message string, isMarkdown bool, repl
 	}
 
 	_, err := plugins.Bot.Send(msg)
-	return err
+	if err != nil {
+		return err
+	}
+
+	dlog.Debugf(" => %s [%d] %s", plugins.Bot.Self.UserName, plugins.Bot.Self.ID, message)
+
+	storeMessage := database.TelegramMessage{
+		TelegramID: int(chatID),
+		Message:    message,
+	}
+
+	err2 := database.StoreTelegramMessage(plugins.DB, &storeMessage)
+	if err2 != nil {
+		dlog.Errorf("store message for user [%d] failed: %s", chatID, err2)
+	}
+
+	return nil
 }
 
 func GetArguments(update *tgbotapi.Update) string {
