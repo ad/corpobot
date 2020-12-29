@@ -43,78 +43,128 @@ func (m *Plugin) OnStop() {
 }
 
 func (m *Plugin) Run(update *tgbotapi.Update, command string, user *database.User) (bool, error) {
+	args := telegram.GetArguments(update)
+
 	if plugins.CheckIfCommandIsAllowed(command, "userlist", user.Role) {
-		args := telegram.GetArguments(update)
-
-		users, err := database.GetUsers(plugins.DB, strings.Fields(args))
-		if err != nil {
-			return true, err
-		}
-
-		if len(users) > 0 {
-			var usersList []string
-
-			for _, u := range users {
-				usersList = append(usersList, "• "+u.String())
-			}
-
-			return true, telegram.Send(user.TelegramID, strings.Join(usersList, "\n"))
-		}
-
-		return true, telegram.Send(user.TelegramID, "user list is empty")
+		return userList(update, user, args)
 	}
 
 	if plugins.CheckIfCommandIsAllowed(command, "userblock", user.Role) || plugins.CheckIfCommandIsAllowed(command, "userunblock", user.Role) {
-		newRole := "member"
-
-		if command == "userblock" {
-			newRole = "blocked"
-		}
-
-		args := strings.TrimLeft(update.Message.CommandArguments(), "@")
-
-		u := &database.User{
-			UserName: args,
-			Role:     newRole,
-		}
-
-		rows, err := database.UpdateUserRole(plugins.DB, u)
-		if err != nil {
-			return true, err
-		}
-
-		if rows != 1 {
-			return true, telegram.Send(user.TelegramID, "failed")
-		}
-
-		return true, telegram.Send(user.TelegramID, "success")
+		return userBlockUnblock(update, user, command, args)
 	}
 
 	if plugins.CheckIfCommandIsAllowed(command, "userdelete", user.Role) || plugins.CheckIfCommandIsAllowed(command, "userundelete", user.Role) {
-		newRole := "member"
+		return userDeleteUndelete(update, user, command, args)
+	}
 
-		if command == "userdelete" {
-			newRole = "deleted"
-		}
-
-		args := strings.TrimLeft(update.Message.CommandArguments(), "@")
-
-		u := &database.User{
-			UserName: args,
-			Role:     newRole,
-		}
-
-		rows, err := database.UpdateUserRole(plugins.DB, u)
-		if err != nil {
-			return true, err
-		}
-
-		if rows != 1 {
-			return true, telegram.Send(user.TelegramID, "failed")
-		}
-
-		return true, telegram.Send(user.TelegramID, "success")
+	if plugins.CheckIfCommandIsAllowed(command, "userpromote", user.Role) {
+		return userPromote(update, user, args)
 	}
 
 	return false, nil
+}
+
+func userList(update *tgbotapi.Update, user *database.User, args string) (bool, error) {
+	users, err := database.GetUsers(plugins.DB, strings.Fields(args))
+	if err != nil {
+		return true, err
+	}
+
+	if len(users) > 0 {
+		var usersList []string
+
+		for _, u := range users {
+			usersList = append(usersList, "• "+u.String())
+		}
+
+		return true, telegram.Send(user.TelegramID, strings.Join(usersList, "\n"))
+	}
+
+	return true, telegram.Send(user.TelegramID, "user list is empty")
+}
+
+func userBlockUnblock(update *tgbotapi.Update, user *database.User, command, args string) (bool, error) {
+	newRole := "member"
+
+	if command == "userblock" {
+		newRole = "blocked"
+	}
+
+	args = strings.TrimLeft(args, "@")
+
+	u := &database.User{
+		UserName: args,
+		Role:     newRole,
+	}
+
+	rows, err := database.UpdateUserRole(plugins.DB, u)
+	if err != nil {
+		return true, err
+	}
+
+	if rows != 1 {
+		return true, telegram.Send(user.TelegramID, "failed")
+	}
+
+	return true, telegram.Send(user.TelegramID, "success")
+}
+
+func userDeleteUndelete(update *tgbotapi.Update, user *database.User, command, args string) (bool, error) {
+	newRole := "member"
+
+	if command == "userdelete" {
+		newRole = "deleted"
+	}
+
+	args = strings.TrimLeft(args, "@")
+
+	u := &database.User{
+		UserName: args,
+		Role:     newRole,
+	}
+
+	rows, err := database.UpdateUserRole(plugins.DB, u)
+	if err != nil {
+		return true, err
+	}
+
+	if rows != 1 {
+		return true, telegram.Send(user.TelegramID, "failed")
+	}
+
+	return true, telegram.Send(user.TelegramID, "success")
+}
+
+func userPromote(update *tgbotapi.Update, user *database.User, args string) (bool, error) {
+	errorString := "failed: you must provide userName and new role with a new line between them"
+
+	args = strings.TrimLeft(args, "@")
+
+	names := strings.Split(args, "\n")
+
+	if len(names) != 2 {
+		return true, telegram.Send(user.TelegramID, errorString)
+	}
+
+	userName, newRole := strings.TrimSpace(names[0]), strings.TrimSpace(names[1])
+
+	if userName == "" || newRole == "" || newRole == "owner" {
+		return true, telegram.Send(user.TelegramID, errorString)
+	}
+
+	u := &database.User{
+		UserName: userName,
+		Role:     newRole,
+	}
+
+	rows, err := database.UpdateUserRole(plugins.DB, u)
+	if err != nil {
+		return true, err
+	}
+
+	if rows != 1 {
+		return true, telegram.Send(user.TelegramID, "failed")
+	}
+
+	return true, telegram.Send(user.TelegramID, "success")
 }
