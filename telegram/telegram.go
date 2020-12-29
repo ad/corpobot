@@ -97,6 +97,7 @@ func ProcessTelegramMessages(db *sql.DB, bot *tgbotapi.BotAPI, updates tgbotapi.
 				LastName:   update.Message.From.LastName,
 				UserName:   update.Message.From.UserName,
 				Message:    update.Message.Text,
+				IsIncoming: true,
 				Date:       time.Unix(int64(update.Message.Date), 0),
 			}
 
@@ -244,6 +245,8 @@ func SendCustom(chatID int64, replyTo int, message string, isMarkdown bool, repl
 	storeMessage := database.TelegramMessage{
 		TelegramID: int(chatID),
 		Message:    message,
+		Date:       time.Unix(time.Now().Unix(), 0),
+		IsIncoming: false,
 	}
 
 	err2 := database.StoreTelegramMessage(plugins.DB, &storeMessage)

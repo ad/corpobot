@@ -23,6 +23,7 @@ type TelegramMessage struct {
 	UserName   string
 	Message    string
 	IsBot      bool
+	IsIncoming bool
 	Date       time.Time
 }
 
@@ -44,6 +45,7 @@ func InitDB() (*sql.DB, error) {
 		"message" TEXT DEFAULT "",
 		"created_at" timestamp DEFAULT CURRENT_TIMESTAMP,
 		"updated_at" timestamp DEFAULT CURRENT_TIMESTAMP,
+		"is_incoming" bool NOT NULL DEFAULT True,
 		CONSTRAINT "telegram_messages_user_id" FOREIGN KEY ("telegram_id") REFERENCES "users" ("telegram_id")
 	);`)
 	if err != nil {
@@ -208,10 +210,11 @@ func QuerySQLList(db *sql.DB, returnModel interface{}, sql string, args ...inter
 // StoreTelegramMessage ...
 func StoreTelegramMessage(db *sql.DB, message *TelegramMessage) error {
 	_, err2 := db.Exec(
-		"INSERT INTO telegram_messages (telegram_id, message, created_at) VALUES (?, ?, ?);",
+		"INSERT INTO telegram_messages (telegram_id, message, created_at, is_incoming) VALUES (?, ?, ?, ?);",
 		message.TelegramID,
 		message.Message,
-		message.Date)
+		message.Date,
+		message.IsIncoming)
 
 	if err2 != nil {
 		return err2
