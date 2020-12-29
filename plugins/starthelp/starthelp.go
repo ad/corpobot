@@ -1,4 +1,4 @@
-package help
+package starthelp
 
 import (
 	"bytes"
@@ -20,20 +20,26 @@ func init() {
 }
 
 func (m *Plugin) OnStart() {
-	if !plugins.CheckIfPluginDisabled("help.Plugin", "enabled") {
+	if !plugins.CheckIfPluginDisabled("starthelp.Plugin", "enabled") {
 		return
 	}
 
+	plugins.RegisterCommand("start", "...", []string{"new", "member", "admin", "owner"})
 	plugins.RegisterCommand("help", "Display this help", []string{"new", "member", "admin", "owner"})
 }
 
 func (m *Plugin) OnStop() {
-	dlog.Debugln("[help.Plugin] Stopped")
+	dlog.Debugln("[starthelp.Plugin] Stopped")
 
+	plugins.UnregisterCommand("start")
 	plugins.UnregisterCommand("help")
 }
 
 func (m *Plugin) Run(update *tgbotapi.Update, command string, user *database.User) (bool, error) {
+	if plugins.CheckIfCommandIsAllowed(command, "start", user.Role) {
+		return true, telegram.Send(user.TelegramID, "Hello! Send /help")
+	}
+
 	if plugins.CheckIfCommandIsAllowed(command, "help", user.Role) {
 		var mk []string
 
