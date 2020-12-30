@@ -15,7 +15,7 @@ import (
 // TelegramMessage ...
 type TelegramMessage struct {
 	ID         int
-	TelegramID int
+	TelegramID int64
 	FirstName  string
 	LastName   string
 	UserName   string

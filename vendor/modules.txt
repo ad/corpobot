@@ -1,70 +1,21 @@
 # github.com/amoghe/distillog v0.0.0-20180726233512-ae382b35b717
 ## explicit
 github.com/amoghe/distillog
-# github.com/blang/semver v3.5.1+incompatible
-## explicit
-github.com/blang/semver
-# github.com/go-telegram-bot-api/telegram-bot-api v4.6.4+incompatible
-## explicit
-# github.com/golang/protobuf v1.3.2
-github.com/golang/protobuf/proto
-# github.com/google/go-github/v30 v30.1.0
-github.com/google/go-github/v30/github
-# github.com/google/go-querystring v1.0.0
-github.com/google/go-querystring/query
-# github.com/inconshreveable/go-update v0.0.0-20160112193335-8152e7eb6ccf
-github.com/inconshreveable/go-update
-github.com/inconshreveable/go-update/internal/binarydist
-github.com/inconshreveable/go-update/internal/osext
-# github.com/kardianos/osext v0.0.0-20190222173326-2bc1f35cddc0
-## explicit
-github.com/kardianos/osext
 # github.com/lazada/sqle v0.0.0-20171211164427-f1ca64d42ef4
 ## explicit
 github.com/lazada/sqle
 github.com/lazada/sqle/embed
 github.com/lazada/sqle/strcase
-# github.com/mattn/go-sqlite3 v2.0.3+incompatible
+# github.com/mattn/go-sqlite3 v1.14.6
 ## explicit
 github.com/mattn/go-sqlite3
-# github.com/rhysd/go-github-selfupdate v1.2.2
-## explicit
-github.com/rhysd/go-github-selfupdate/selfupdate
-# github.com/tcnksm/go-gitconfig v0.1.2
-github.com/tcnksm/go-gitconfig
 # github.com/technoweenie/multipartstreamer v1.0.1
 ## explicit
 github.com/technoweenie/multipartstreamer
-# github.com/ulikunitz/xz v0.5.5
-github.com/ulikunitz/xz
-github.com/ulikunitz/xz/internal/hash
-github.com/ulikunitz/xz/internal/xlog
-github.com/ulikunitz/xz/lzma
-# golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2
-golang.org/x/crypto/cast5
-golang.org/x/crypto/openpgp
-golang.org/x/crypto/openpgp/armor
-golang.org/x/crypto/openpgp/elgamal
-golang.org/x/crypto/openpgp/errors
-golang.org/x/crypto/openpgp/packet
-golang.org/x/crypto/openpgp/s2k
-# golang.org/x/net v0.0.0-20201216054612-986b41b23924
+# golang.org/x/net v0.0.0-20201224014010-6772e930b67b
 ## explicit
-golang.org/x/net/context
-golang.org/x/net/context/ctxhttp
 golang.org/x/net/internal/socks
 golang.org/x/net/proxy
-# golang.org/x/oauth2 v0.0.0-20181106182150-f42d05182288
-golang.org/x/oauth2
-golang.org/x/oauth2/internal
-# google.golang.org/appengine v1.3.0
-google.golang.org/appengine/internal
-google.golang.org/appengine/internal/base
-google.golang.org/appengine/internal/datastore
-google.golang.org/appengine/internal/log
-google.golang.org/appengine/internal/remote_api
-google.golang.org/appengine/internal/urlfetch
-google.golang.org/appengine/urlfetch
 # gopkg.in/telegram-bot-api.v4 v4.6.4
 ## explicit
 gopkg.in/telegram-bot-api.v4
