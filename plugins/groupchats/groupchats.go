@@ -49,7 +49,7 @@ func (m *Plugin) Run(update *tgbotapi.Update, command, args string, user *databa
 		return groupchatList(update, user, args)
 	}
 
-	if plugins.CheckIfCommandIsAllowed(command, "groupchatsinvitegenerate", user.Role) {
+	if plugins.CheckIfCommandIsAllowed(command, "groupchatinvitegenerate", user.Role) {
 		return groupchatInviteGenerate(update, user, args)
 	}
 
