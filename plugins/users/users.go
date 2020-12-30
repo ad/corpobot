@@ -161,7 +161,7 @@ func userPromote(update *tgbotapi.Update, user *database.User, args string) (boo
 
 	u := &database.User{
 		TelegramID: telegramID,
-		Role:     newRole,
+		Role:       newRole,
 	}
 
 	rows, err := database.UpdateUserRole(plugins.DB, u)
