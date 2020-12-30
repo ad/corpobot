@@ -134,24 +134,32 @@ func userDeleteUndelete(update *tgbotapi.Update, user *database.User, command, a
 }
 
 func userPromote(update *tgbotapi.Update, user *database.User, args string) (bool, error) {
-	errorString := "failed: you must provide userName and new role with a new line between them"
+	errorString := "failed: you must provide TelegramID and new role with a new line between them"
 
-	args = strings.TrimLeft(args, "@")
+	params := strings.Split(args, "\n")
 
-	names := strings.Split(args, "\n")
-
-	if len(names) != 2 {
+	if len(params) != 2 {
 		return true, telegram.Send(user.TelegramID, errorString)
 	}
 
-	userName, newRole := strings.TrimSpace(names[0]), strings.TrimSpace(names[1])
+	telegramIDstring, newRole := strings.TrimSpace(names[0]), strings.TrimSpace(names[1])
 
-	if userName == "" || newRole == "" || newRole == "owner" {
+	if telegramIDstring == "" || newRole == "" || newRole == "owner" {
+		return true, telegram.Send(user.TelegramID, errorString)
+	}
+
+	var telegramID int64
+	n, err := strconv.ParseInt(telegramIDstring, 10, 64)
+	if err == nil {
+		telegramID = n
+	}
+
+	if telegramID == 0 {
 		return true, telegram.Send(user.TelegramID, errorString)
 	}
 
 	u := &database.User{
-		UserName: userName,
+		TelegramID: telegramID,
 		Role:     newRole,
 	}
 
