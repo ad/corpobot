@@ -26,9 +26,6 @@ jobs:
       - name: Build Linux binary
         run: GOOS=linux GOARCH=amd64 go build -o $(echo $GITHUB_REPOSITORY | cut -d "/" -f 2)_linux_amd64 -a -ldflags '-s -w' .
 
-      - name: Build Linux binary
-        run: GOOS=linux GOARCH=arm go build -o $(echo $GITHUB_REPOSITORY | cut -d "/" -f 2)_linux_arm -a -ldflags '-s -w' .
-   
       - name: Install olsu
         run: wget https://github.com/Telling/olsu/releases/download/v0.1.0/olsu-linux-amd64.zip && unzip olsu-linux-amd64.zip && chmod +x olsu-linux-amd64 && pwd && ls -la
         
@@ -36,4 +33,4 @@ jobs:
         env:
           OLSU_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OLSU_DELETE_RELEASE: yes
-        run: ./olsu-linux-amd64 -o $(echo $GITHUB_REPOSITORY | cut -d "/" -f 1) -r $(echo $GITHUB_REPOSITORY | cut -d "/" -f 2) "Latest release" "latest" "Automatic release" $(echo $GITHUB_REPOSITORY | cut -d "/" -f 2)_darwin_amd64 $(echo $GITHUB_REPOSITORY | cut -d "/" -f 2)_linux_amd64 $(echo $GITHUB_REPOSITORY | cut -d "/" -f 2)_linux_arm
+        run: ./olsu-linux-amd64 -o $(echo $GITHUB_REPOSITORY | cut -d "/" -f 1) -r $(echo $GITHUB_REPOSITORY | cut -d "/" -f 2) "Latest release" "latest" "Automatic release" $(echo $GITHUB_REPOSITORY | cut -d "/" -f 2)_darwin_amd64 $(echo $GITHUB_REPOSITORY | cut -d "/" -f 2)_linux_amd64
