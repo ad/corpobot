@@ -2,6 +2,8 @@ package main
 
 import (
 	"log"
+	"os"
+	"syscall"
 	"time"
 
 	config "github.com/ad/corpobot/config"
@@ -21,9 +23,13 @@ import (
 	_ "github.com/ad/corpobot/plugins/messages"
 	_ "github.com/ad/corpobot/plugins/starthelp"
 	_ "github.com/ad/corpobot/plugins/users"
+
+	"github.com/blang/semver"
+	"github.com/kardianos/osext"
+	"github.com/rhysd/go-github-selfupdate/selfupdate"
 )
 
-const version = "0.0.3"
+const version = "0.1.0"
 
 var (
 	err error
@@ -34,6 +40,15 @@ var (
 
 func main() {
 	dlog.Infof("Started version %s", version)
+
+	ticker := time.NewTicker(10 * time.Minute)
+	go func(ticker *time.Ticker) {
+		for range ticker.C {
+			if updateErr := selfUpdate("ad/corpobot"); updateErr != nil {
+				dlog.Infoln(os.Stderr, updateErr)
+			}
+		}
+	}(ticker)
 
 	// Init Config
 	config := config.InitConfig()
@@ -78,4 +93,38 @@ func main() {
 	}
 
 	telegram.ProcessTelegramMessages(db, bot, updates)
+}
+
+func selfUpdate(slug string) error {
+	previous := semver.MustParse(version)
+	latest, err := selfupdate.UpdateSelf(previous, slug)
+	if err != nil {
+		return err
+	}
+
+	if !previous.Equals(latest.Version) {
+		dlog.Infoln("Update successfully done to version", latest.Version)
+
+		err = restart()
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Restart app
+func restart() error {
+	file, error := osext.Executable()
+	if error != nil {
+		return error
+	}
+
+	error = syscall.Exec(file, os.Args, os.Environ())
+	if error != nil {
+		return error
+	}
+
+	return nil
 }
