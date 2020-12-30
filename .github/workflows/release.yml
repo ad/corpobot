@@ -20,9 +20,6 @@ jobs:
       - name: Check out source code
         uses: actions/checkout@master
 
-      - name: Build OS X binary
-        run: CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build -o $(echo $GITHUB_REPOSITORY | cut -d "/" -f 2)_darwin_amd64 -a -ldflags '-s -w' .
-
       - name: Build Linux amd64 binary
         run: CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -o $(echo $GITHUB_REPOSITORY | cut -d "/" -f 2)_linux_amd64 -a -ldflags '-s -w' .
 
@@ -36,4 +33,4 @@ jobs:
         env:
           OLSU_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OLSU_DELETE_RELEASE: yes
-        run: ./olsu-linux-amd64 -o $(echo $GITHUB_REPOSITORY | cut -d "/" -f 1) -r $(echo $GITHUB_REPOSITORY | cut -d "/" -f 2) "Latest release" "latest" "Automatic release" $(echo $GITHUB_REPOSITORY | cut -d "/" -f 2)_darwin_amd64 $(echo $GITHUB_REPOSITORY | cut -d "/" -f 2)_linux_amd64 $(echo $GITHUB_REPOSITORY | cut -d "/" -f 2)_linux_arm64
+        run: ./olsu-linux-amd64 -o $(echo $GITHUB_REPOSITORY | cut -d "/" -f 1) -r $(echo $GITHUB_REPOSITORY | cut -d "/" -f 2) "Latest release" "latest" "Automatic release" $(echo $GITHUB_REPOSITORY | cut -d "/" -f 2)_linux_amd64 $(echo $GITHUB_REPOSITORY | cut -d "/" -f 2)_linux_arm64
