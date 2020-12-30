@@ -24,9 +24,6 @@ jobs:
         run: GOOS=darwin GOARCH=amd64 go build -o $(echo $GITHUB_REPOSITORY | cut -d "/" -f 2)_darwin_amd64 -a -ldflags '-s -w' .
 
       - name: Build Linux binary
-        run: GOOS=linux GOARCH=386 go build -o $(echo $GITHUB_REPOSITORY | cut -d "/" -f 2)_linux_386 -a -ldflags '-s -w' .
-
-      - name: Build Linux binary
         run: GOOS=linux GOARCH=amd64 go build -o $(echo $GITHUB_REPOSITORY | cut -d "/" -f 2)_linux_amd64 -a -ldflags '-s -w' .
 
       - name: Build Linux binary
@@ -39,4 +36,4 @@ jobs:
         env:
           OLSU_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OLSU_DELETE_RELEASE: yes
-        run: ./olsu-linux-amd64 -o $(echo $GITHUB_REPOSITORY | cut -d "/" -f 1) -r $(echo $GITHUB_REPOSITORY | cut -d "/" -f 2) "Latest release" "latest" "Automatic release" $(echo $GITHUB_REPOSITORY | cut -d "/" -f 2)_darwin_amd64 $(echo $GITHUB_REPOSITORY | cut -d "/" -f 2)_linux_386 $(echo $GITHUB_REPOSITORY | cut -d "/" -f 2)_linux_amd64 $(echo $GITHUB_REPOSITORY | cut -d "/" -f 2)_linux_arm
+        run: ./olsu-linux-amd64 -o $(echo $GITHUB_REPOSITORY | cut -d "/" -f 1) -r $(echo $GITHUB_REPOSITORY | cut -d "/" -f 2) "Latest release" "latest" "Automatic release" $(echo $GITHUB_REPOSITORY | cut -d "/" -f 2)_darwin_amd64 $(echo $GITHUB_REPOSITORY | cut -d "/" -f 2)_linux_amd64 $(echo $GITHUB_REPOSITORY | cut -d "/" -f 2)_linux_arm
