@@ -1,6 +1,7 @@
 package users
 
 import (
+	"strconv"
 	"strings"
 
 	database "github.com/ad/corpobot/db"
