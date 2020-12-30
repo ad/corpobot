@@ -142,7 +142,7 @@ func userPromote(update *tgbotapi.Update, user *database.User, args string) (boo
 		return true, telegram.Send(user.TelegramID, errorString)
 	}
 
-	telegramIDstring, newRole := strings.TrimSpace(names[0]), strings.TrimSpace(names[1])
+	telegramIDstring, newRole := strings.TrimSpace(params[0]), strings.TrimSpace(params[1])
 
 	if telegramIDstring == "" || newRole == "" || newRole == "owner" {
 		return true, telegram.Send(user.TelegramID, errorString)
