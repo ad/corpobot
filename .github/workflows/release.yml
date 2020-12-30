@@ -21,13 +21,13 @@ jobs:
         uses: actions/checkout@master
 
       - name: Build OS X binary
-        run: GOOS=darwin GOARCH=amd64 go build -o $(echo $GITHUB_REPOSITORY | cut -d "/" -f 2)_darwin_amd64 -a -ldflags '-s -w' .
+        run: CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build -o $(echo $GITHUB_REPOSITORY | cut -d "/" -f 2)_darwin_amd64 -a -ldflags '-s -w' .
 
       - name: Build Linux amd64 binary
-        run: GOOS=linux GOARCH=amd64 go build -o $(echo $GITHUB_REPOSITORY | cut -d "/" -f 2)_linux_amd64 -a -ldflags '-s -w' .
+        run: CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -o $(echo $GITHUB_REPOSITORY | cut -d "/" -f 2)_linux_amd64 -a -ldflags '-s -w' .
 
       - name: Build Linux arm64 binary
-        run: GOOS=linux GOARCH=arm64 go build -o $(echo $GITHUB_REPOSITORY | cut -d "/" -f 2)_linux_arm64 -a -ldflags '-s -w' .
+        run: CGO_ENABLED=1 GOOS=linux GOARCH=arm64 go build -o $(echo $GITHUB_REPOSITORY | cut -d "/" -f 2)_linux_arm64 -a -ldflags '-s -w' .
 
       - name: Install olsu
         run: wget https://github.com/Telling/olsu/releases/download/v0.1.0/olsu-linux-amd64.zip && unzip olsu-linux-amd64.zip && chmod +x olsu-linux-amd64 && pwd && ls -la
