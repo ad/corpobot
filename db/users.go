@@ -129,9 +129,9 @@ ORDER BY
 // UpdateUserRole ...
 func UpdateUserRole(db *sql.DB, user *User) (int64, error) {
 	result, err := db.Exec(
-		"UPDATE users SET role = ? WHERE user_name = ? AND role != ? AND role != 'owner';",
+		"UPDATE users SET role = ? WHERE telegram_id = ? AND role != ? AND role != 'owner';",
 		user.Role,
-		user.UserName,
+		user.TelegramID,
 		user.Role)
 	if err != nil {
 		return -1, err

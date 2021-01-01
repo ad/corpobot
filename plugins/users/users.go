@@ -89,10 +89,18 @@ func userBlockUnblock(update *tgbotapi.Update, user *database.User, command, arg
 		newRole = "blocked"
 	}
 
-	args = strings.TrimLeft(args, "@")
+	var telegramID int64
+	n, err := strconv.ParseInt(args, 10, 64)
+	if err == nil {
+		telegramID = n
+	}
+
+	if telegramID == 0 {
+		return true, telegram.Send(user.TelegramID, "please provide user telegram ID")
+	}
 
 	u := &database.User{
-		UserName: args,
+		TelegramID: telegramID,
 		Role:     newRole,
 	}
 
@@ -115,10 +123,18 @@ func userDeleteUndelete(update *tgbotapi.Update, user *database.User, command, a
 		newRole = "deleted"
 	}
 
-	args = strings.TrimLeft(args, "@")
+	var telegramID int64
+	n, err := strconv.ParseInt(args, 10, 64)
+	if err == nil {
+		telegramID = n
+	}
+
+	if telegramID == 0 {
+		return true, telegram.Send(user.TelegramID, "please provide user telegram ID")
+	}
 
 	u := &database.User{
-		UserName: args,
+		TelegramID: telegramID,
 		Role:     newRole,
 	}
 
