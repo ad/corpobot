@@ -101,7 +101,7 @@ func userBlockUnblock(update *tgbotapi.Update, user *database.User, command, arg
 
 	u := &database.User{
 		TelegramID: telegramID,
-		Role:     newRole,
+		Role:       newRole,
 	}
 
 	rows, err := database.UpdateUserRole(plugins.DB, u)
@@ -135,7 +135,7 @@ func userDeleteUndelete(update *tgbotapi.Update, user *database.User, command, a
 
 	u := &database.User{
 		TelegramID: telegramID,
-		Role:     newRole,
+		Role:       newRole,
 	}
 
 	rows, err := database.UpdateUserRole(plugins.DB, u)
