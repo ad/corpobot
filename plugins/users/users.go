@@ -24,7 +24,7 @@ func (m *Plugin) OnStart() {
 		return
 	}
 
-	plugins.RegisterCommand("userlist", "...", []string{"member", "admin", "owner"})
+	plugins.RegisterCommand("userlist", "User list", []string{"member", "admin", "owner"})
 	plugins.RegisterCommand("userpromote", "...", []string{"admin", "owner"})
 	plugins.RegisterCommand("userblock", "...", []string{"admin", "owner"})
 	plugins.RegisterCommand("userdelete", "...", []string{"admin", "owner"})

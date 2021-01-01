@@ -23,7 +23,7 @@ func (m *Plugin) OnStart() {
 		return
 	}
 
-	plugins.RegisterCommand("me", "...", []string{"new", "member", "admin", "owner"})
+	plugins.RegisterCommand("me", "Your ID/username", []string{"new", "member", "admin", "owner"})
 }
 
 func (m *Plugin) OnStop() {

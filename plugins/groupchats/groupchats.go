@@ -25,7 +25,7 @@ func (m *Plugin) OnStart() {
 		return
 	}
 
-	plugins.RegisterCommand("groupchatlist", "...", []string{"member", "admin", "owner"})
+	plugins.RegisterCommand("groupchatlist", "Groupchat list", []string{"member", "admin", "owner"})
 	plugins.RegisterCommand("groupchatinvitegenerate", "...", []string{"admin", "owner"})
 	plugins.RegisterCommand("groupchatuserban", "...", []string{"admin", "owner"})
 	plugins.RegisterCommand("groupchatuserunban", "...", []string{"admin", "owner"})

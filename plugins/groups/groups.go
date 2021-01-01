@@ -24,7 +24,7 @@ func (m *Plugin) OnStart() {
 		return
 	}
 
-	plugins.RegisterCommand("grouplist", "...", []string{"member", "admin", "owner"})
+	plugins.RegisterCommand("grouplist", "Group list", []string{"member", "admin", "owner"})
 	plugins.RegisterCommand("groupcreate", "...", []string{"admin", "owner"})
 	plugins.RegisterCommand("grouprename", "...", []string{"admin", "owner"})
 	plugins.RegisterCommand("groupdelete", "...", []string{"admin", "owner"})
