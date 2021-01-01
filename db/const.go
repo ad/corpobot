@@ -12,4 +12,11 @@ const (
 
 	GroupChatAlreadyExists = "groupchat already exists"
 	GroupChatNotFound      = "groupchat not found"
+
+	Deleted = "deleted"
+	Blocked = "blocked"
+	New     = "new"
+	Member  = "member"
+	Admin   = "admin"
+	Owner   = "owner"
 )
