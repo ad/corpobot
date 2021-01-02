@@ -7,13 +7,8 @@ import (
 	config "github.com/ad/corpobot/config"
 	database "github.com/ad/corpobot/db"
 	"github.com/ad/corpobot/plugins"
-	telegram "github.com/ad/corpobot/telegram"
-
-	dlog "github.com/amoghe/distillog"
-	sql "github.com/lazada/sqle"
-	tgbotapi "gopkg.in/telegram-bot-api.v4"
-
 	_ "github.com/ad/corpobot/plugins/admin"
+	_ "github.com/ad/corpobot/plugins/calendar"
 	_ "github.com/ad/corpobot/plugins/echo"
 	_ "github.com/ad/corpobot/plugins/groupchats"
 	_ "github.com/ad/corpobot/plugins/groups"
@@ -21,9 +16,13 @@ import (
 	_ "github.com/ad/corpobot/plugins/messages"
 	_ "github.com/ad/corpobot/plugins/starthelp"
 	_ "github.com/ad/corpobot/plugins/users"
+	telegram "github.com/ad/corpobot/telegram"
+	dlog "github.com/amoghe/distillog"
+	sql "github.com/lazada/sqle"
+	tgbotapi "gopkg.in/telegram-bot-api.v4"
 )
 
-const version = "0.1.2"
+const version = "0.2.0"
 
 var (
 	err error
