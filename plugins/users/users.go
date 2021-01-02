@@ -74,42 +74,31 @@ func userList(update *tgbotapi.Update, user *database.User, args string) (bool, 
 }
 
 func userActions(update *tgbotapi.Update, user *database.User, args string) (bool, error) {
-	buttons := make([][]tgbotapi.InlineKeyboardButton, 0)
-
 	userID, err := strconv.ParseInt(args, 10, 64)
 	if err != nil {
 		return true, telegram.Send(user.TelegramID, "wrong telegramID provided")
 	}
 
-	userFromDB, err := database.GetUserByTelegramID(plugins.DB, &database.User{TelegramID: userID})
-	if err != nil {
-		return true, telegram.Send(user.TelegramID, err.Error())
+	replyKeyboard := userActionsList(update, user, userID)
+	if update.CallbackQuery != nil {
+		_, err := plugins.Bot.AnswerCallbackQuery(tgbotapi.NewCallback(update.CallbackQuery.ID, args+" success"))
+		if err != nil {
+			dlog.Errorln(err.Error())
+		}
+
+		edit := tgbotapi.EditMessageReplyMarkupConfig{
+			BaseEdit: tgbotapi.BaseEdit{
+				ChatID:      update.CallbackQuery.Message.Chat.ID,
+				MessageID:   update.CallbackQuery.Message.MessageID,
+				ReplyMarkup: &replyKeyboard,
+			},
+		}
+
+		_, err = plugins.Bot.Send(edit)
+		return true, err
 	}
 
-	switch userFromDB.Role {
-	case database.Deleted:
-		buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("undelete user", "/userundelete "+strconv.FormatInt(userFromDB.TelegramID, 10))))
-	case database.Blocked:
-		buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("unblock user", "/userunblock "+strconv.FormatInt(userFromDB.TelegramID, 10))))
-	case database.New:
-		buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("block user", "/userblock "+strconv.FormatInt(userFromDB.TelegramID, 10))))
-		buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("delete user", "/userdelete "+strconv.FormatInt(userFromDB.TelegramID, 10))))
-		buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("make member", "/userpromote "+strconv.FormatInt(userFromDB.TelegramID, 10)+"\nmember")))
-		buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("make admin", "/userpromote "+strconv.FormatInt(userFromDB.TelegramID, 10)+"\nadmin")))
-	case database.Member:
-		buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("block user", "/userblock "+strconv.FormatInt(userFromDB.TelegramID, 10))))
-		buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("delete user", "/userdelete "+strconv.FormatInt(userFromDB.TelegramID, 10))))
-		buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("make admin", "/userpromote "+strconv.FormatInt(userFromDB.TelegramID, 10)+"\nadmin")))
-	case database.Admin:
-		buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("block user", "/userblock "+strconv.FormatInt(userFromDB.TelegramID, 10))))
-		buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("delete user", "/userdelete "+strconv.FormatInt(userFromDB.TelegramID, 10))))
-		buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("make member", "/userpromote "+strconv.FormatInt(userFromDB.TelegramID, 10)+"\nmember")))
-	default:
-		buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("user actions", "/user "+strconv.FormatInt(userFromDB.TelegramID, 10))))
-	}
-
-	replyKeyboard := tgbotapi.NewInlineKeyboardMarkup(buttons...)
-	return true, telegram.SendCustom(user.TelegramID, 0, "Choose action for "+userFromDB.String(), false, &replyKeyboard)
+	return true, telegram.SendCustom(user.TelegramID, 0, "Choose action", false, &replyKeyboard)
 }
 
 func userBlockUnblock(update *tgbotapi.Update, user *database.User, command, args string) (bool, error) {
@@ -141,6 +130,25 @@ func userBlockUnblock(update *tgbotapi.Update, user *database.User, command, arg
 
 	if rows != 1 {
 		return true, telegram.Send(user.TelegramID, "failed")
+	}
+
+	if update.CallbackQuery != nil {
+		_, err := plugins.Bot.AnswerCallbackQuery(tgbotapi.NewCallback(update.CallbackQuery.ID, args+" success"))
+		if err != nil {
+			dlog.Errorln(err.Error())
+		}
+
+		replyKeyboard := userActionsList(update, user, telegramID)
+		edit := tgbotapi.EditMessageReplyMarkupConfig{
+			BaseEdit: tgbotapi.BaseEdit{
+				ChatID:      update.CallbackQuery.Message.Chat.ID,
+				MessageID:   update.CallbackQuery.Message.MessageID,
+				ReplyMarkup: &replyKeyboard,
+			},
+		}
+
+		_, err = plugins.Bot.Send(edit)
+		return true, err
 	}
 
 	return true, telegram.Send(user.TelegramID, "success")
@@ -175,6 +183,25 @@ func userDeleteUndelete(update *tgbotapi.Update, user *database.User, command, a
 
 	if rows != 1 {
 		return true, telegram.Send(user.TelegramID, "failed")
+	}
+
+	if update.CallbackQuery != nil {
+		_, err := plugins.Bot.AnswerCallbackQuery(tgbotapi.NewCallback(update.CallbackQuery.ID, args+" success"))
+		if err != nil {
+			dlog.Errorln(err.Error())
+		}
+
+		replyKeyboard := userActionsList(update, user, telegramID)
+		edit := tgbotapi.EditMessageReplyMarkupConfig{
+			BaseEdit: tgbotapi.BaseEdit{
+				ChatID:      update.CallbackQuery.Message.Chat.ID,
+				MessageID:   update.CallbackQuery.Message.MessageID,
+				ReplyMarkup: &replyKeyboard,
+			},
+		}
+
+		_, err = plugins.Bot.Send(edit)
+		return true, err
 	}
 
 	return true, telegram.Send(user.TelegramID, "success")
@@ -219,6 +246,25 @@ func userPromote(update *tgbotapi.Update, user *database.User, args string) (boo
 		return true, telegram.Send(user.TelegramID, "failed")
 	}
 
+	if update.CallbackQuery != nil {
+		_, err := plugins.Bot.AnswerCallbackQuery(tgbotapi.NewCallback(update.CallbackQuery.ID, args+" enabled"))
+		if err != nil {
+			dlog.Errorln(err.Error())
+		}
+
+		replyKeyboard := userActionsList(update, user, telegramID)
+		edit := tgbotapi.EditMessageReplyMarkupConfig{
+			BaseEdit: tgbotapi.BaseEdit{
+				ChatID:      update.CallbackQuery.Message.Chat.ID,
+				MessageID:   update.CallbackQuery.Message.MessageID,
+				ReplyMarkup: &replyKeyboard,
+			},
+		}
+
+		_, err = plugins.Bot.Send(edit)
+		return true, err
+	}
+
 	return true, telegram.Send(user.TelegramID, "success")
 }
 
@@ -233,6 +279,40 @@ func ListUsers(update *tgbotapi.Update, user *database.User, args string) tgbota
 
 	for _, u := range users {
 		buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(u.String(), "/user "+strconv.FormatInt(u.TelegramID, 10))))
+	}
+
+	return tgbotapi.NewInlineKeyboardMarkup(buttons...)
+}
+
+func userActionsList(update *tgbotapi.Update, user *database.User, userID int64) tgbotapi.InlineKeyboardMarkup {
+	buttons := make([][]tgbotapi.InlineKeyboardButton, 0)
+
+	userFromDB, err := database.GetUserByTelegramID(plugins.DB, &database.User{TelegramID: userID})
+	if err != nil {
+		dlog.Errorln(err.Error())
+		return tgbotapi.NewInlineKeyboardMarkup(buttons...)
+	}
+
+	switch userFromDB.Role {
+	case database.Deleted:
+		buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("undelete user", "/userundelete "+strconv.FormatInt(userFromDB.TelegramID, 10))))
+	case database.Blocked:
+		buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("unblock user", "/userunblock "+strconv.FormatInt(userFromDB.TelegramID, 10))))
+	case database.New:
+		buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("block user", "/userblock "+strconv.FormatInt(userFromDB.TelegramID, 10))))
+		buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("delete user", "/userdelete "+strconv.FormatInt(userFromDB.TelegramID, 10))))
+		buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("make member", "/userpromote "+strconv.FormatInt(userFromDB.TelegramID, 10)+"\nmember")))
+		buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("make admin", "/userpromote "+strconv.FormatInt(userFromDB.TelegramID, 10)+"\nadmin")))
+	case database.Member:
+		buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("block user", "/userblock "+strconv.FormatInt(userFromDB.TelegramID, 10))))
+		buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("delete user", "/userdelete "+strconv.FormatInt(userFromDB.TelegramID, 10))))
+		buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("make admin", "/userpromote "+strconv.FormatInt(userFromDB.TelegramID, 10)+"\nadmin")))
+	case database.Admin:
+		buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("block user", "/userblock "+strconv.FormatInt(userFromDB.TelegramID, 10))))
+		buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("delete user", "/userdelete "+strconv.FormatInt(userFromDB.TelegramID, 10))))
+		buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("make member", "/userpromote "+strconv.FormatInt(userFromDB.TelegramID, 10)+"\nmember")))
+	default:
+		buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("user actions", "/user "+strconv.FormatInt(userFromDB.TelegramID, 10))))
 	}
 
 	return tgbotapi.NewInlineKeyboardMarkup(buttons...)
