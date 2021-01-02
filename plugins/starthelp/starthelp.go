@@ -4,9 +4,8 @@ import (
 	"bytes"
 	"sort"
 
-	"github.com/ad/corpobot/plugins"
-
 	database "github.com/ad/corpobot/db"
+	"github.com/ad/corpobot/plugins"
 	telegram "github.com/ad/corpobot/telegram"
 	dlog "github.com/amoghe/distillog"
 	tgbotapi "gopkg.in/telegram-bot-api.v4"
@@ -24,7 +23,7 @@ func (m *Plugin) OnStart() {
 		return
 	}
 
-	plugins.RegisterCommand("start", "...", []string{"new", "member", "admin", "owner"})
+	plugins.RegisterCommand("start", "Bot /start command", []string{"new", "member", "admin", "owner"})
 	plugins.RegisterCommand("help", "Display this help", []string{"new", "member", "admin", "owner"})
 }
 

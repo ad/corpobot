@@ -7,7 +7,6 @@ import (
 	database "github.com/ad/corpobot/db"
 	"github.com/ad/corpobot/plugins"
 	telegram "github.com/ad/corpobot/telegram"
-
 	dlog "github.com/amoghe/distillog"
 	tgbotapi "gopkg.in/telegram-bot-api.v4"
 )
@@ -26,11 +25,11 @@ func (m *Plugin) OnStart() {
 
 	plugins.RegisterCommand("userlist", "User list", []string{database.Member, database.Admin, database.Owner})
 	plugins.RegisterCommand("user", "User actions", []string{database.Admin, database.Owner})
-	plugins.RegisterCommand("userpromote", "...", []string{database.Admin, database.Owner})
-	plugins.RegisterCommand("userblock", "...", []string{database.Admin, database.Owner})
-	plugins.RegisterCommand("userdelete", "...", []string{database.Admin, database.Owner})
-	plugins.RegisterCommand("userunblock", "...", []string{database.Admin, database.Owner})
-	plugins.RegisterCommand("userundelete", "...", []string{database.Admin, database.Owner})
+	plugins.RegisterCommand("userpromote", "Change user role", []string{database.Admin, database.Owner})
+	plugins.RegisterCommand("userblock", "Block user", []string{database.Admin, database.Owner})
+	plugins.RegisterCommand("userdelete", "Delete user", []string{database.Admin, database.Owner})
+	plugins.RegisterCommand("userunblock", "Unblock user", []string{database.Admin, database.Owner})
+	plugins.RegisterCommand("userundelete", "Undelete user", []string{database.Admin, database.Owner})
 }
 
 func (m *Plugin) OnStop() {

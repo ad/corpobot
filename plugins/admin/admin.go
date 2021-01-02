@@ -1,9 +1,8 @@
 package admin
 
 import (
-	"github.com/ad/corpobot/plugins"
-
 	database "github.com/ad/corpobot/db"
+	"github.com/ad/corpobot/plugins"
 	telegram "github.com/ad/corpobot/telegram"
 	dlog "github.com/amoghe/distillog"
 	tgbotapi "gopkg.in/telegram-bot-api.v4"
@@ -21,9 +20,9 @@ func (m *Plugin) OnStart() {
 		return
 	}
 
-	plugins.RegisterCommand("pluginlist", "...", []string{"owner"})
-	plugins.RegisterCommand("pluginenable", "...", []string{"owner"})
-	plugins.RegisterCommand("plugindisable", "...", []string{"owner"})
+	plugins.RegisterCommand("pluginlist", "List of plugins", []string{"owner"})
+	plugins.RegisterCommand("pluginenable", "Enable plugin", []string{"owner"})
+	plugins.RegisterCommand("plugindisable", "Disable plugin", []string{"owner"})
 }
 
 func (m *Plugin) OnStop() {

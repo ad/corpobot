@@ -7,7 +7,6 @@ import (
 	database "github.com/ad/corpobot/db"
 	"github.com/ad/corpobot/plugins"
 	telegram "github.com/ad/corpobot/telegram"
-
 	dlog "github.com/amoghe/distillog"
 	tgbotapi "gopkg.in/telegram-bot-api.v4"
 )
@@ -26,11 +25,11 @@ func (m *Plugin) OnStart() {
 	}
 
 	plugins.RegisterCommand("groupchatlist", "Groupchat list", []string{"member", "admin", "owner"})
-	plugins.RegisterCommand("groupchatinvitegenerate", "...", []string{"admin", "owner"})
-	plugins.RegisterCommand("groupchatuserban", "...", []string{"admin", "owner"})
-	plugins.RegisterCommand("groupchatuserunban", "...", []string{"admin", "owner"})
-	plugins.RegisterCommand("groupchatmembers", "...", []string{"admin", "owner"})
-	plugins.RegisterCommand("groupchatdelete", "...", []string{"admin", "owner"})
+	plugins.RegisterCommand("groupchatinvitegenerate", "Generate groupchat invite link", []string{"admin", "owner"})
+	plugins.RegisterCommand("groupchatuserban", "Ban user in groupchat", []string{"admin", "owner"})
+	plugins.RegisterCommand("groupchatuserunban", "Unban user in groupchat", []string{"admin", "owner"})
+	plugins.RegisterCommand("groupchatmembers", "List groupchat members", []string{"admin", "owner"})
+	plugins.RegisterCommand("groupchatdelete", "Delete groupchat", []string{"admin", "owner"})
 }
 
 func (m *Plugin) OnStop() {

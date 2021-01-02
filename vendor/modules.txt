@@ -1,6 +1,8 @@
 # github.com/amoghe/distillog v0.0.0-20180726233512-ae382b35b717
 ## explicit
 github.com/amoghe/distillog
+# github.com/go-telegram-bot-api/telegram-bot-api v4.6.4+incompatible
+## explicit
 # github.com/lazada/sqle v0.0.0-20171211164427-f1ca64d42ef4
 ## explicit
 github.com/lazada/sqle

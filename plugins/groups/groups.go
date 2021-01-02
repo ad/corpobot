@@ -7,7 +7,6 @@ import (
 	database "github.com/ad/corpobot/db"
 	"github.com/ad/corpobot/plugins"
 	telegram "github.com/ad/corpobot/telegram"
-
 	dlog "github.com/amoghe/distillog"
 	tgbotapi "gopkg.in/telegram-bot-api.v4"
 )
@@ -25,14 +24,14 @@ func (m *Plugin) OnStart() {
 	}
 
 	plugins.RegisterCommand("grouplist", "Group list", []string{"member", "admin", "owner"})
-	plugins.RegisterCommand("groupcreate", "...", []string{"admin", "owner"})
-	plugins.RegisterCommand("grouprename", "...", []string{"admin", "owner"})
-	plugins.RegisterCommand("groupdelete", "...", []string{"admin", "owner"})
-	plugins.RegisterCommand("groupundelete", "...", []string{"admin", "owner"})
-	plugins.RegisterCommand("groupaddgroupchat", "...", []string{"admin", "owner"})
-	plugins.RegisterCommand("groupdeletegroupchat", "...", []string{"admin", "owner"})
-	plugins.RegisterCommand("groupadduser", "...", []string{"admin", "owner"})
-	plugins.RegisterCommand("groupdeleteuser", "...", []string{"admin", "owner"})
+	plugins.RegisterCommand("groupcreate", "Create group", []string{"admin", "owner"})
+	plugins.RegisterCommand("grouprename", "Rename group", []string{"admin", "owner"})
+	plugins.RegisterCommand("groupdelete", "Delete group", []string{"admin", "owner"})
+	plugins.RegisterCommand("groupundelete", "Undelete group", []string{"admin", "owner"})
+	plugins.RegisterCommand("groupaddgroupchat", "Add groupchat to group", []string{"admin", "owner"})
+	plugins.RegisterCommand("groupdeletegroupchat", "Delete groupchat from group", []string{"admin", "owner"})
+	plugins.RegisterCommand("groupadduser", "Add user to group", []string{"admin", "owner"})
+	plugins.RegisterCommand("groupdeleteuser", "Delete user from group", []string{"admin", "owner"})
 }
 
 func (m *Plugin) OnStop() {
