@@ -291,13 +291,9 @@ func userBirthday(update *tgbotapi.Update, user *database.User, args string) (bo
 			Birthday:   t,
 		}
 
-		rows, err := database.UpdateUserBirthday(plugins.DB, u)
+		_, err = database.UpdateUserBirthday(plugins.DB, u)
 		if err != nil {
 			return true, telegram.Send(user.TelegramID, "failed: "+err.Error())
-		}
-
-		if rows != 1 {
-			return true, telegram.Send(user.TelegramID, "failed")
 		}
 
 		return true, telegram.Send(user.TelegramID, "success")
