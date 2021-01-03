@@ -44,13 +44,13 @@ func (m *Plugin) Run(update *tgbotapi.Update, command, args string, user *databa
 			date := strings.TrimLeft(args, "<")
 			year, month, err := parseDate(date)
 			if err == nil {
-				replyKeyboard, _, _ = cal.HandlerPrevButton(year, time.Month(month))
+				replyKeyboard, _, _ = cal.HandlerPrevButton("/calendar", year, time.Month(month))
 			}
 		case strings.HasPrefix(args, ">"):
 			date := strings.TrimLeft(args, ">")
 			year, month, err := parseDate(date)
 			if err == nil {
-				replyKeyboard, _, _ = cal.HandlerNextButton(year, time.Month(month))
+				replyKeyboard, _, _ = cal.HandlerNextButton("/calendar", year, time.Month(month))
 			}
 		default:
 			currentTime := time.Now()
@@ -62,11 +62,11 @@ func (m *Plugin) Run(update *tgbotapi.Update, command, args string, user *databa
 				year = year2
 				month = time.Month(month2)
 			}
-			replyKeyboard = cal.GenerateCalendar(year, month)
+			replyKeyboard = cal.GenerateCalendar("/calendar", year, month)
 		}
 
 		if update.CallbackQuery != nil {
-			_, err := plugins.Bot.AnswerCallbackQuery(tgbotapi.NewCallback(update.CallbackQuery.ID, args+" success"))
+			_, err := plugins.Bot.AnswerCallbackQuery(tgbotapi.NewCallback(update.CallbackQuery.ID, ""))
 			if err != nil {
 				dlog.Errorln(err.Error())
 			}

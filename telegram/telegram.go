@@ -135,7 +135,7 @@ func ProcessTelegramCommand(update *tgbotapi.Update, user *database.User) {
 		}
 	}
 
-	if command == "" && update.Message.Command() != "" {
+	if command == "" && update.Message != nil && update.Message.Command() != "" {
 		command = update.Message.Command()
 	}
 
