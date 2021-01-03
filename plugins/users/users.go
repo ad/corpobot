@@ -1,9 +1,12 @@
 package users
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
+	cal "github.com/ad/corpobot/calendar"
 	database "github.com/ad/corpobot/db"
 	"github.com/ad/corpobot/plugins"
 	telegram "github.com/ad/corpobot/telegram"
@@ -30,6 +33,7 @@ func (m *Plugin) OnStart() {
 	plugins.RegisterCommand("userdelete", "Delete user", []string{database.Admin, database.Owner})
 	plugins.RegisterCommand("userunblock", "Unblock user", []string{database.Admin, database.Owner})
 	plugins.RegisterCommand("userundelete", "Undelete user", []string{database.Admin, database.Owner})
+	plugins.RegisterCommand("userbirthday", "Set user birthday", []string{database.Member, database.Admin, database.Owner})
 }
 
 func (m *Plugin) OnStop() {
@@ -42,6 +46,7 @@ func (m *Plugin) OnStop() {
 	plugins.UnregisterCommand("userdelete")
 	plugins.UnregisterCommand("userunblock")
 	plugins.UnregisterCommand("userundelete")
+	plugins.UnregisterCommand("userbirthday")
 }
 
 func (m *Plugin) Run(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
@@ -63,6 +68,10 @@ func (m *Plugin) Run(update *tgbotapi.Update, command, args string, user *databa
 
 	if plugins.CheckIfCommandIsAllowed(command, "userpromote", user.Role) {
 		return userPromote(update, user, args)
+	}
+
+	if plugins.CheckIfCommandIsAllowed(command, "userbirthday", user.Role) {
+		return userBirthday(update, user, args)
 	}
 
 	return false, nil
@@ -266,6 +275,81 @@ func userPromote(update *tgbotapi.Update, user *database.User, args string) (boo
 	}
 
 	return true, telegram.Send(user.TelegramID, "success")
+}
+
+func userBirthday(update *tgbotapi.Update, user *database.User, args string) (bool, error) {
+	year, month, day, err := cal.ParseDate(args)
+	if err == nil && year != 0 && month != 0 && day != 0 {
+		layout := "2006-01-02"
+		t, err := time.Parse(layout, fmt.Sprintf("%d-%02d-%02d", year, month, day))
+		if err != nil {
+			return true, telegram.Send(user.TelegramID, "failed: "+err.Error())
+		}
+
+		u := &database.User{
+			TelegramID: user.TelegramID,
+			Birthday:   t,
+		}
+
+		rows, err := database.UpdateUserBirthday(plugins.DB, u)
+		if err != nil {
+			return true, telegram.Send(user.TelegramID, "failed: "+err.Error())
+		}
+
+		if rows != 1 {
+			return true, telegram.Send(user.TelegramID, "failed")
+		}
+
+		return true, telegram.Send(user.TelegramID, "success")
+	}
+
+	replyKeyboard := tgbotapi.InlineKeyboardMarkup{}
+
+	switch {
+	case strings.HasPrefix(args, "<"):
+		date := strings.TrimLeft(args, "<")
+		year, month, _, err := cal.ParseDate(date)
+		if err == nil {
+			replyKeyboard, _, _ = cal.HandlerPrevButton("/userbirthday", year, time.Month(month))
+		}
+	case strings.HasPrefix(args, ">"):
+		date := strings.TrimLeft(args, ">")
+		year, month, _, err := cal.ParseDate(date)
+		if err == nil {
+			replyKeyboard, _, _ = cal.HandlerNextButton("/userbirthday", year, time.Month(month))
+		}
+	default:
+		currentTime := time.Now()
+		year := currentTime.Year()
+		month := currentTime.Month()
+
+		year2, month2, _, err := cal.ParseDate(args)
+		if err == nil {
+			year = year2
+			month = time.Month(month2)
+		}
+		replyKeyboard = cal.GenerateCalendar("/userbirthday", year, month)
+	}
+
+	if update.CallbackQuery != nil {
+		_, err := plugins.Bot.AnswerCallbackQuery(tgbotapi.NewCallback(update.CallbackQuery.ID, ""))
+		if err != nil {
+			dlog.Errorln(err.Error())
+		}
+
+		edit := tgbotapi.EditMessageReplyMarkupConfig{
+			BaseEdit: tgbotapi.BaseEdit{
+				ChatID:      update.CallbackQuery.Message.Chat.ID,
+				MessageID:   update.CallbackQuery.Message.MessageID,
+				ReplyMarkup: &replyKeyboard,
+			},
+		}
+
+		_, err = plugins.Bot.Send(edit)
+		return true, err
+	}
+
+	return true, telegram.SendCustom(user.TelegramID, 0, "Calendar", false, &replyKeyboard)
 }
 
 func ListUsers(update *tgbotapi.Update, user *database.User, args string) tgbotapi.InlineKeyboardMarkup {

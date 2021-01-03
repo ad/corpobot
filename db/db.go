@@ -8,7 +8,6 @@ import (
 
 	dlog "github.com/amoghe/distillog"
 	sql "github.com/lazada/sqle"
-
 	_ "github.com/mattn/go-sqlite3" // Register some sql
 )
 
@@ -60,6 +59,7 @@ func InitDB() (*sql.DB, error) {
 		"is_bot" bool NOT NULL,
 		"created_at" timestamp DEFAULT CURRENT_TIMESTAMP,
 		"updated_at" timestamp DEFAULT CURRENT_TIMESTAMP,
+		"birthday" timestamp DEFAULT NULL,
 		CONSTRAINT "users_telegram_id" UNIQUE ("telegram_id") ON CONFLICT IGNORE
 	  );
 

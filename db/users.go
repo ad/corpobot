@@ -8,7 +8,6 @@ import (
 
 	dlog "github.com/amoghe/distillog"
 	sql "github.com/lazada/sqle"
-
 	_ "github.com/mattn/go-sqlite3" // Register some sql
 )
 
@@ -21,6 +20,7 @@ type User struct {
 	TelegramID int64     `sql:"telegram_id"`
 	IsBot      bool      `sql:"is_bot"`
 	Role       string    `sql:"role"`
+	Birthday   time.Time `sql:"birthday,omitempty"`
 	CreatedAt  time.Time `sql:"created_at"`
 }
 
@@ -133,6 +133,21 @@ func UpdateUserRole(db *sql.DB, user *User) (int64, error) {
 		user.Role,
 		user.TelegramID,
 		user.Role)
+	if err != nil {
+		return -1, err
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return -1, err
+	}
+
+	return rows, nil
+}
+
+// UpdateUserBirthday ...
+func UpdateUserBirthday(db *sql.DB, user *User) (int64, error) {
+	result, err := db.Exec("UPDATE users SET birthday = ? WHERE telegram_id = ?;", user.Birthday, user.TelegramID)
 	if err != nil {
 		return -1, err
 	}

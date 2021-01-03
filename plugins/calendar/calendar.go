@@ -1,8 +1,6 @@
 package calendar
 
 import (
-	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -42,13 +40,13 @@ func (m *Plugin) Run(update *tgbotapi.Update, command, args string, user *databa
 		switch {
 		case strings.HasPrefix(args, "<"):
 			date := strings.TrimLeft(args, "<")
-			year, month, err := parseDate(date)
+			year, month, _, err := cal.ParseDate(date)
 			if err == nil {
 				replyKeyboard, _, _ = cal.HandlerPrevButton("/calendar", year, time.Month(month))
 			}
 		case strings.HasPrefix(args, ">"):
 			date := strings.TrimLeft(args, ">")
-			year, month, err := parseDate(date)
+			year, month, _, err := cal.ParseDate(date)
 			if err == nil {
 				replyKeyboard, _, _ = cal.HandlerNextButton("/calendar", year, time.Month(month))
 			}
@@ -57,7 +55,7 @@ func (m *Plugin) Run(update *tgbotapi.Update, command, args string, user *databa
 			year := currentTime.Year()
 			month := currentTime.Month()
 
-			year2, month2, err := parseDate(args)
+			year2, month2, _, err := cal.ParseDate(args)
 			if err == nil {
 				year = year2
 				month = time.Month(month2)
@@ -87,24 +85,4 @@ func (m *Plugin) Run(update *tgbotapi.Update, command, args string, user *databa
 	}
 
 	return false, nil
-}
-
-func parseDate(date string) (int, int, error) {
-	if date != "" {
-		dateArray := strings.SplitN(date, ".", 2)
-		if len(dateArray) == 2 {
-			year, err1 := strconv.Atoi(dateArray[0])
-			if err1 != nil {
-				return 0, 0, err1
-			}
-			month, err2 := strconv.Atoi(dateArray[1])
-			if err2 != nil {
-				return 0, 0, err2
-			}
-			if year > 0 && month > 0 && month < 13 {
-				return year, month, nil
-			}
-		}
-	}
-	return 0, 0, fmt.Errorf("%s", "wrong date format")
 }

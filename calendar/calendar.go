@@ -3,6 +3,7 @@ package calendar
 import (
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	tgbotapi "gopkg.in/telegram-bot-api.v4"
@@ -33,7 +34,7 @@ func GenerateCalendar(command string, year int, month time.Month) tgbotapi.Inlin
 	keyboard = addMonthYearRow(command, year, month, keyboard)
 	keyboard = addDaysNamesRow(keyboard)
 	keyboard = generateMonth(command, year, int(month), keyboard)
-	keyboard = addSpecialButtons(year, month, keyboard)
+	keyboard = addSpecialButtons(command, year, month, keyboard)
 	return keyboard
 }
 
@@ -55,6 +56,33 @@ func HandlerNextButton(command string, year int, month time.Month) (tgbotapi.Inl
 		year++
 	}
 	return GenerateCalendar(command, year, month), year, month
+}
+func ParseDate(date string) (int, int, int, error) {
+	if date != "" {
+		dateArray := strings.SplitN(date, ".", 3)
+		if len(dateArray) >= 2 {
+			year, err1 := strconv.Atoi(dateArray[0])
+			if err1 != nil {
+				return 0, 0, 0, err1
+			}
+			month, err2 := strconv.Atoi(dateArray[1])
+			if err2 != nil {
+				return 0, 0, 0, err2
+			}
+			day := 0
+			if len(dateArray) == 3 {
+				var err3 error
+				day, err3 = strconv.Atoi(dateArray[2])
+				if err3 != nil {
+					return 0, 0, 0, err3
+				}
+			}
+			if year > 0 && month > 0 && month < 13 {
+				return year, month, day, nil
+			}
+		}
+	}
+	return 0, 0, 0, fmt.Errorf("%s", "wrong date format")
 }
 
 func addMonthYearRow(command string, year int, month time.Month, keyboard tgbotapi.InlineKeyboardMarkup) tgbotapi.InlineKeyboardMarkup {
@@ -127,10 +155,10 @@ func date(year, month, day int) time.Time {
 	return time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.UTC)
 }
 
-func addSpecialButtons(year int, month time.Month, keyboard tgbotapi.InlineKeyboardMarkup) tgbotapi.InlineKeyboardMarkup {
+func addSpecialButtons(command string, year int, month time.Month, keyboard tgbotapi.InlineKeyboardMarkup) tgbotapi.InlineKeyboardMarkup {
 	var rowDays = []tgbotapi.InlineKeyboardButton{}
-	btnPrev := tgbotapi.NewInlineKeyboardButtonData("<", "/calendar < "+fmt.Sprintf("%v.%d", year, month))
-	btnNext := tgbotapi.NewInlineKeyboardButtonData(">", "/calendar > "+fmt.Sprintf("%v.%d", year, month))
+	btnPrev := tgbotapi.NewInlineKeyboardButtonData("<", command+" < "+fmt.Sprintf("%v.%d", year, month))
+	btnNext := tgbotapi.NewInlineKeyboardButtonData(">", command+" > "+fmt.Sprintf("%v.%d", year, month))
 	rowDays = append(rowDays, btnPrev, btnNext)
 	keyboard.InlineKeyboard = append(keyboard.InlineKeyboard, rowDays)
 	return keyboard
