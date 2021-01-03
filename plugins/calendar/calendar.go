@@ -62,6 +62,30 @@ func (m *Plugin) Run(update *tgbotapi.Update, command, args string, user *databa
 			if err == nil {
 				replyKeyboard, _, _ = cal.HandlerNextYear("/calendar", year, time.Month(month))
 			}
+		case strings.HasPrefix(args, "m"):
+			currentTime := time.Now()
+			year := currentTime.Year()
+			month := currentTime.Month()
+
+			date := strings.TrimLeft(args, "m")
+			year2, month2, _, err := cal.ParseDate(date)
+			if err == nil {
+				year = year2
+				month = time.Month(month2)
+			}
+			replyKeyboard = cal.GenerateMonths("/calendar", year, month)
+		case strings.HasPrefix(args, "y"):
+			currentTime := time.Now()
+			year := currentTime.Year()
+			month := currentTime.Month()
+
+			date := strings.TrimLeft(args, "y")
+			year2, month2, _, err := cal.ParseDate(date)
+			if err == nil {
+				year = year2
+				month = time.Month(month2)
+			}
+			replyKeyboard = cal.GenerateYears("/calendar", year, month)
 		default:
 			currentTime := time.Now()
 			year := currentTime.Year()
