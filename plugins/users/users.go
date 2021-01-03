@@ -278,25 +278,8 @@ func userPromote(update *tgbotapi.Update, user *database.User, args string) (boo
 }
 
 func userBirthday(update *tgbotapi.Update, user *database.User, args string) (bool, error) {
-	year, month, day, err := cal.ParseDate(args)
-	if err == nil && year != 0 && month != 0 && day != 0 {
-		layout := "2006-01-02"
-		t, err := time.Parse(layout, fmt.Sprintf("%d-%02d-%02d", year, month, day))
-		if err != nil {
-			return true, telegram.Send(user.TelegramID, "failed: "+err.Error())
-		}
-
-		u := &database.User{
-			TelegramID: user.TelegramID,
-			Birthday:   t,
-		}
-
-		_, err = database.UpdateUserBirthday(plugins.DB, u)
-		if err != nil {
-			return true, telegram.Send(user.TelegramID, "failed: "+err.Error())
-		}
-
-		return true, telegram.Send(user.TelegramID, "success")
+	if result, err := storeBirthday(update, user, args); result {
+		return true, err
 	}
 
 	replyKeyboard := tgbotapi.InlineKeyboardMarkup{}
@@ -306,13 +289,25 @@ func userBirthday(update *tgbotapi.Update, user *database.User, args string) (bo
 		date := strings.TrimLeft(args, "<")
 		year, month, _, err := cal.ParseDate(date)
 		if err == nil {
-			replyKeyboard, _, _ = cal.HandlerPrevButton("/userbirthday", year, time.Month(month))
+			replyKeyboard, _, _ = cal.HandlerPrevMonth("/userbirthday", year, time.Month(month))
 		}
 	case strings.HasPrefix(args, ">"):
 		date := strings.TrimLeft(args, ">")
 		year, month, _, err := cal.ParseDate(date)
 		if err == nil {
-			replyKeyboard, _, _ = cal.HandlerNextButton("/userbirthday", year, time.Month(month))
+			replyKeyboard, _, _ = cal.HandlerNextMonth("/userbirthday", year, time.Month(month))
+		}
+	case strings.HasPrefix(args, "«"):
+		date := strings.TrimLeft(args, "«")
+		year, month, _, err := cal.ParseDate(date)
+		if err == nil {
+			replyKeyboard, _, _ = cal.HandlerPrevYear("/userbirthday", year, time.Month(month))
+		}
+	case strings.HasPrefix(args, "»"):
+		date := strings.TrimLeft(args, "»")
+		year, month, _, err := cal.ParseDate(date)
+		if err == nil {
+			replyKeyboard, _, _ = cal.HandlerNextYear("/userbirthday", year, time.Month(month))
 		}
 	default:
 		currentTime := time.Now()
@@ -346,6 +341,31 @@ func userBirthday(update *tgbotapi.Update, user *database.User, args string) (bo
 	}
 
 	return true, telegram.SendCustom(user.TelegramID, 0, "Calendar", false, &replyKeyboard)
+}
+
+func storeBirthday(update *tgbotapi.Update, user *database.User, args string) (bool, error) {
+	year, month, day, err := cal.ParseDate(args)
+	if err == nil && year != 0 && month != 0 && day != 0 {
+		layout := "2006-01-02"
+		t, err := time.Parse(layout, fmt.Sprintf("%d-%02d-%02d", year, month, day))
+		if err != nil {
+			return true, telegram.Send(user.TelegramID, "failed: "+err.Error())
+		}
+
+		u := &database.User{
+			TelegramID: user.TelegramID,
+			Birthday:   t,
+		}
+
+		_, err = database.UpdateUserBirthday(plugins.DB, u)
+		if err != nil {
+			return true, telegram.Send(user.TelegramID, "failed: "+err.Error())
+		}
+
+		return true, telegram.Send(user.TelegramID, "success")
+	}
+
+	return false, nil
 }
 
 func ListUsers(update *tgbotapi.Update, user *database.User, args string) tgbotapi.InlineKeyboardMarkup {

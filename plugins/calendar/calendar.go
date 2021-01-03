@@ -42,13 +42,25 @@ func (m *Plugin) Run(update *tgbotapi.Update, command, args string, user *databa
 			date := strings.TrimLeft(args, "<")
 			year, month, _, err := cal.ParseDate(date)
 			if err == nil {
-				replyKeyboard, _, _ = cal.HandlerPrevButton("/calendar", year, time.Month(month))
+				replyKeyboard, _, _ = cal.HandlerPrevMonth("/calendar", year, time.Month(month))
 			}
 		case strings.HasPrefix(args, ">"):
 			date := strings.TrimLeft(args, ">")
 			year, month, _, err := cal.ParseDate(date)
 			if err == nil {
-				replyKeyboard, _, _ = cal.HandlerNextButton("/calendar", year, time.Month(month))
+				replyKeyboard, _, _ = cal.HandlerNextMonth("/calendar", year, time.Month(month))
+			}
+		case strings.HasPrefix(args, "«"):
+			date := strings.TrimLeft(args, "«")
+			year, month, _, err := cal.ParseDate(date)
+			if err == nil {
+				replyKeyboard, _, _ = cal.HandlerPrevYear("/calendar", year, time.Month(month))
+			}
+		case strings.HasPrefix(args, "»"):
+			date := strings.TrimLeft(args, "»")
+			year, month, _, err := cal.ParseDate(date)
+			if err == nil {
+				replyKeyboard, _, _ = cal.HandlerNextYear("/calendar", year, time.Month(month))
 			}
 		default:
 			currentTime := time.Now()

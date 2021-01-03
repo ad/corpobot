@@ -34,11 +34,11 @@ func GenerateCalendar(command string, year int, month time.Month) tgbotapi.Inlin
 	keyboard = addMonthYearRow(command, year, month, keyboard)
 	keyboard = addDaysNamesRow(keyboard)
 	keyboard = generateMonth(command, year, int(month), keyboard)
-	keyboard = addSpecialButtons(command, year, month, keyboard)
+	// keyboard = addSpecialButtons(command, year, month, keyboard)
 	return keyboard
 }
 
-func HandlerPrevButton(command string, year int, month time.Month) (tgbotapi.InlineKeyboardMarkup, int, time.Month) {
+func HandlerPrevMonth(command string, year int, month time.Month) (tgbotapi.InlineKeyboardMarkup, int, time.Month) {
 	if month != time.January {
 		month--
 	} else {
@@ -48,7 +48,7 @@ func HandlerPrevButton(command string, year int, month time.Month) (tgbotapi.Inl
 	return GenerateCalendar(command, year, month), year, month
 }
 
-func HandlerNextButton(command string, year int, month time.Month) (tgbotapi.InlineKeyboardMarkup, int, time.Month) {
+func HandlerNextMonth(command string, year int, month time.Month) (tgbotapi.InlineKeyboardMarkup, int, time.Month) {
 	if month != time.December {
 		month++
 	} else {
@@ -57,6 +57,17 @@ func HandlerNextButton(command string, year int, month time.Month) (tgbotapi.Inl
 	}
 	return GenerateCalendar(command, year, month), year, month
 }
+
+func HandlerPrevYear(command string, year int, month time.Month) (tgbotapi.InlineKeyboardMarkup, int, time.Month) {
+	year--
+	return GenerateCalendar(command, year, month), year, month
+}
+
+func HandlerNextYear(command string, year int, month time.Month) (tgbotapi.InlineKeyboardMarkup, int, time.Month) {
+	year++
+	return GenerateCalendar(command, year, month), year, month
+}
+
 func ParseDate(date string) (int, int, int, error) {
 	if date != "" {
 		dateArray := strings.SplitN(date, ".", 3)
@@ -87,8 +98,12 @@ func ParseDate(date string) (int, int, int, error) {
 
 func addMonthYearRow(command string, year int, month time.Month, keyboard tgbotapi.InlineKeyboardMarkup) tgbotapi.InlineKeyboardMarkup {
 	var row []tgbotapi.InlineKeyboardButton
+	btnPrevYear := tgbotapi.NewInlineKeyboardButtonData("«", command+" « "+fmt.Sprintf("%v.%d", year, month))
+	btnPrevMonth := tgbotapi.NewInlineKeyboardButtonData("<", command+" < "+fmt.Sprintf("%v.%d", year, month))
 	btn := tgbotapi.NewInlineKeyboardButtonData(fmt.Sprintf("%s %v", month, year), command)
-	row = append(row, btn)
+	btnNextMonth := tgbotapi.NewInlineKeyboardButtonData(">", command+" > "+fmt.Sprintf("%v.%d", year, month))
+	btnNextYear := tgbotapi.NewInlineKeyboardButtonData("»", command+" » "+fmt.Sprintf("%v.%d", year, month))
+	row = append(row, btnPrevYear, btnPrevMonth, btn, btnNextMonth, btnNextYear)
 	keyboard.InlineKeyboard = append(keyboard.InlineKeyboard, row)
 	return keyboard
 }
@@ -155,11 +170,11 @@ func date(year, month, day int) time.Time {
 	return time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.UTC)
 }
 
-func addSpecialButtons(command string, year int, month time.Month, keyboard tgbotapi.InlineKeyboardMarkup) tgbotapi.InlineKeyboardMarkup {
-	var rowDays = []tgbotapi.InlineKeyboardButton{}
-	btnPrev := tgbotapi.NewInlineKeyboardButtonData("<", command+" < "+fmt.Sprintf("%v.%d", year, month))
-	btnNext := tgbotapi.NewInlineKeyboardButtonData(">", command+" > "+fmt.Sprintf("%v.%d", year, month))
-	rowDays = append(rowDays, btnPrev, btnNext)
-	keyboard.InlineKeyboard = append(keyboard.InlineKeyboard, rowDays)
-	return keyboard
-}
+// func addSpecialButtons(command string, year int, month time.Month, keyboard tgbotapi.InlineKeyboardMarkup) tgbotapi.InlineKeyboardMarkup {
+// 	var rowDays = []tgbotapi.InlineKeyboardButton{}
+// 	btnPrev := tgbotapi.NewInlineKeyboardButtonData("<", command+" < "+fmt.Sprintf("%v.%d", year, month))
+// 	btnNext := tgbotapi.NewInlineKeyboardButtonData(">", command+" > "+fmt.Sprintf("%v.%d", year, month))
+// 	rowDays = append(rowDays, btnPrev, btnNext)
+// 	keyboard.InlineKeyboard = append(keyboard.InlineKeyboard, rowDays)
+// 	return keyboard
+// }
