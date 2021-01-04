@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -90,9 +91,23 @@ func ProcessTelegramMessages(db *sql.DB, bot *tgbotapi.BotAPI, updates tgbotapi.
 			}
 		}
 
-		user, err := database.AddUserIfNotExist(db, user)
-		if err != nil && err.Error() != database.UserAlreadyExists {
-			dlog.Errorln(err.Error())
+		user, errAddUser := database.AddUserIfNotExist(db, user)
+		if errAddUser == nil {
+			users, errGetUsers := database.GetUsers(db, []string{"admin", "owner"})
+			if errGetUsers == nil {
+				newUserMessage := "New user registered: " + user.String()
+				replyKeyboard := tgbotapi.NewInlineKeyboardMarkup(tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("user info", "/user "+strconv.FormatInt(user.TelegramID, 10))))
+
+				for _, u := range users {
+					err := SendCustom(u.TelegramID, 0, newUserMessage, false, &replyKeyboard)
+					if err != nil {
+						dlog.Errorln(err.Error())
+					}
+				}
+			}
+		}
+		if errAddUser != nil && errAddUser.Error() != database.UserAlreadyExists {
+			dlog.Errorln(errAddUser.Error())
 			continue
 		}
 
