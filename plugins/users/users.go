@@ -364,7 +364,7 @@ func userBirthday(update *tgbotapi.Update, user *database.User, args string) (bo
 		return true, err
 	}
 
-	return true, telegram.SendCustom(user.TelegramID, 0, "Calendar", false, &replyKeyboard)
+	return true, telegram.SendCustom(user.TelegramID, 0, "Choose your birth date", false, &replyKeyboard)
 }
 
 func storeBirthday(update *tgbotapi.Update, user *database.User, args string) (bool, error) {
@@ -386,7 +386,18 @@ func storeBirthday(update *tgbotapi.Update, user *database.User, args string) (b
 			return true, telegram.Send(user.TelegramID, "failed: "+err.Error())
 		}
 
-		return true, telegram.Send(user.TelegramID, "success")
+		var deleteMessage tgbotapi.DeleteMessageConfig
+		if update.CallbackQuery != nil {
+			deleteMessage = tgbotapi.DeleteMessageConfig{ChatID: update.CallbackQuery.Message.Chat.ID, MessageID: update.CallbackQuery.Message.MessageID}
+		} else if update.Message != nil {
+			deleteMessage = tgbotapi.DeleteMessageConfig{ChatID: update.Message.Chat.ID, MessageID: update.Message.MessageID}
+		}
+		_, err = plugins.Bot.DeleteMessage(deleteMessage)
+		if err != nil {
+			dlog.Errorln(err.Error())
+		}
+
+		return true, telegram.Send(user.TelegramID, "Your birth date ("+args+") saved")
 	}
 
 	return false, nil
