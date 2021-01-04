@@ -2,44 +2,6 @@
 
 Бот для организации доступа к чатам организации.
 
-## Функции
-
-- [x] Создать пользователя — пользователь создается, когда отправляет первое сообщение боту
-- [x] Удалить/заблокировать пользователя /userdelete ..., /userundelete ..., /userblock ..., /userunblock ...
-- [x] Список пользователей (можно фильтровать по ролям) /userlist ...
-
-- [x] Создать группу пользователей /groupcreate ...
-- [x] Список групп /grouplist
-- [x] Список чатов в выводе списка групп /grouplist
-- [x] Переименовать группу /grouprename ... \n ...
-- [x] Удалить группу /groupdelete ..., /groupundelete ...
-
-- [x] Список чатов
-- [x] Добавить чат в группу
-- [x] Удалить чат из группы
-
-- [x] таблица для связи между пользователями и группами
-- [x] Добавить пользователя в группу
-- [x] Удалить пользователя из группы
-
-- [x] Генерировать ссылку для приглашения пользователя в чат /groupchatinvitegenerate
-
-- [x] Список участиков чата /groupchatmembers ...
-- [x] Забанить/разбанить участника в чате /groupchatuserban ..., /groupchatuserunban ...
-- [x] удаление групчата /groupchatdelete
-
-- [x] Отправить участнику(участникам) уведомление /broadcast, /message
-
-- [x] проверка прав пользователей на возможность выполнения команды
-
-- [x] не отвечать на команды в групчатах (игнорировать)
-- [x] перевести со строковых команд на кнопки и колбэки (поддерживается оба варианта)
-
-## TODO
-...
-
-## Флоу
-
 ### Новый пользователь
 
 - Пользователя просят написать боту
@@ -56,10 +18,48 @@
 - Администратор выбирает какого пользователя удалить из каких чатов (пользователь банится в этих чатах)
 - Администратор удаляет пользователя, чем запрещает ему выполнение любых команд бота
 
+## Команды
+
+Those are my commands: 
+- /broadcast - Send message to all users
+- /calendar - Show calendar
+- /groupaddgroupchat - Add groupchat to group
+- /groupadduser - Add user to group
+- /groupchatdelete - Delete groupchat
+- /groupchatinvitegenerate - Generate groupchat invite link
+- /groupchatlist - Groupchat list
+- /groupchatmembers - List groupchat members
+- /groupchatuserunban - Unban user in groupchat
+- /groupchatuserban - Ban user in groupchat
+- /groupchatuserunban - Unban user in groupchat
+- /groupcreate - Create group
+- /groupdelete - Delete group
+- /groupdeletegroupchat - Delete groupchat from group
+- /groupdeleteuser - Delete user from group
+- /grouplist - Group list
+- /grouprename - Rename group
+- /groupundelete - Undelete group
+- /help - Display this help
+- /me - Your ID/username
+- /message - Send message to user
+- /plugindisable - Disable plugin
+- /pluginenable - Enable plugin
+- /pluginlist - List of plugins
+- /start - Bot /start command
+- /user - User actions
+- /userbirthday - Set user birthday
+- /userblock - Block user
+- /userdelete - Delete user
+- /userlist - User list
+- /userpromote - Change user role
+- /userunblock - Unblock user
+- /userundelete - Undelete user
+
+## TODO
+- [ ] Поздравлять пользователя с днем рождения и уведомлять админов (заранее)
+
 ## Идеи для плагинов
 - [ ] Переговорки
 - [ ] Отпуска
-- [ ] Дни рождения
 - [ ] Онбординг
 - [ ] Контакты
-- [ ] Бродкасты
