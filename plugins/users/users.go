@@ -160,6 +160,11 @@ func userBlockUnblock(update *tgbotapi.Update, user *database.User, command, arg
 		return true, err
 	}
 
+	errNotifyUser := telegram.Send(telegramID, "you were assigned the role \""+newRole+"\", user /help for command list")
+	if errNotifyUser != nil {
+		dlog.Errorln(errNotifyUser.Error())
+	}
+
 	return true, telegram.Send(user.TelegramID, "success")
 }
 
@@ -211,6 +216,11 @@ func userDeleteUndelete(update *tgbotapi.Update, user *database.User, command, a
 
 		_, err = plugins.Bot.Send(edit)
 		return true, err
+	}
+
+	errNotifyUser := telegram.Send(telegramID, "you were assigned the role \""+newRole+"\", user /help for command list")
+	if errNotifyUser != nil {
+		dlog.Errorln(errNotifyUser.Error())
 	}
 
 	return true, telegram.Send(user.TelegramID, "success")
@@ -272,6 +282,11 @@ func userPromote(update *tgbotapi.Update, user *database.User, args string) (boo
 
 		_, err = plugins.Bot.Send(edit)
 		return true, err
+	}
+
+	errNotifyUser := telegram.Send(telegramID, "you were assigned the role \""+newRole+"\", user /help for command list")
+	if errNotifyUser != nil {
+		dlog.Errorln(errNotifyUser.Error())
 	}
 
 	return true, telegram.Send(user.TelegramID, "success")
