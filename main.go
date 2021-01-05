@@ -21,7 +21,7 @@ import (
 	tgbotapi "gopkg.in/telegram-bot-api.v4"
 )
 
-const version = "0.2.6"
+const version = "0.2.7"
 
 var (
 	err error
@@ -67,9 +67,10 @@ func main() {
 	for {
 		if plugins.DB != nil && plugins.DB.Ping() == nil {
 			// Bootstrapper for plugins
-			for _, d := range plugins.Plugins {
-				go d.OnStart()
-			}
+			plugins.Plugins.Range(func(k, v interface{}) bool {
+				go v.(plugins.TelegramPlugin).OnStart()
+				return true
+			})
 			break
 		}
 		time.Sleep(time.Second)

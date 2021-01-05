@@ -40,21 +40,24 @@ func (m *Plugin) Run(update *tgbotapi.Update, command, args string, user *databa
 	}
 
 	if plugins.CheckIfCommandIsAllowed(command, "help", user.Role) {
-		var mk []string
+		mk := make(map[string]string)
+		var keys []string
 
-		for k := range plugins.Commands {
-			mk = append(mk, k)
-		}
+		plugins.Commands.Range(func(k, v interface{}) bool {
+			if plugins.CheckIfCommandIsAllowed(k.(string), k.(string), user.Role) {
+				mk[k.(string)] = v.(plugins.Command).Description
+				keys = append(keys, k.(string))
+			}
+			return true
+		})
 
-		sort.Strings(mk)
+		sort.Strings(keys)
 		var buffer bytes.Buffer
 
-		for _, v := range mk {
-			if plugins.CheckIfCommandIsAllowed(v, v, user.Role) {
-				_, err := buffer.WriteString("/" + v + " - " + plugins.Commands[v].Description + "\n")
-				if err != nil {
-					return true, err
-				}
+		for _, k := range keys {
+			_, err := buffer.WriteString("/" + k + " - " + mk[k] + "\n")
+			if err != nil {
+				return true, err
 			}
 		}
 

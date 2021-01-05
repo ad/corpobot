@@ -3,6 +3,7 @@ package plugins
 import (
 	"reflect"
 	"strings"
+	"sync"
 
 	config "github.com/ad/corpobot/config"
 	database "github.com/ad/corpobot/db"
@@ -25,9 +26,9 @@ type Command struct {
 }
 
 var (
-	Plugins         = map[string]TelegramPlugin{}
-	DisabledPlugins = map[string]TelegramPlugin{}
-	Commands        = make(map[string]Command)
+	Plugins         sync.Map
+	DisabledPlugins sync.Map
+	Commands        sync.Map
 	Bot             *tgbotapi.BotAPI
 	DB              *sql.DB
 	Config          *config.Config
@@ -35,20 +36,20 @@ var (
 
 // Register a Plugin
 func RegisterPlugin(p TelegramPlugin) {
-	Plugins[KeyOf(p)] = p
+	Plugins.Store(KeyOf(p), p)
 }
 
 // Disable a plugin
 func DisablePlugin(plugin string) bool {
 	plugin = strings.TrimSpace(plugin)
 
-	_, exists := Plugins[plugin]
+	v, exists := Plugins.Load(plugin)
 	if exists {
-		DisabledPlugins[plugin] = Plugins[plugin]
-		_, disabled := DisabledPlugins[plugin]
+		DisabledPlugins.Store(plugin, v.(TelegramPlugin))
+		_, disabled := DisabledPlugins.Load(plugin)
 		if disabled {
-			delete(Plugins, plugin)
-			DisabledPlugins[plugin].OnStop()
+			Plugins.Delete(plugin)
+			v.(TelegramPlugin).OnStop()
 
 			dlog.Debugln(plugin + " removed from running plugins")
 		} else {
@@ -66,18 +67,18 @@ func DisablePlugin(plugin string) bool {
 func EnablePlugin(plugin string) bool {
 	plugin = strings.TrimSpace(plugin)
 
-	_, PluginExists := Plugins[plugin]
+	_, PluginExists := Plugins.Load(plugin)
 	if PluginExists {
 		return true
 	}
 
-	PluginInstance, InstanceExists := DisabledPlugins[plugin]
-	Plugins[plugin] = PluginInstance
+	PluginInstance, InstanceExists := DisabledPlugins.Load(plugin)
+	Plugins.Store(plugin, PluginInstance)
 	if InstanceExists {
-		delete(DisabledPlugins, plugin)
+		DisabledPlugins.Delete(plugin)
 		dlog.Debugln("[" + plugin + "] enabled ")
 
-		PluginInstance.OnStart()
+		PluginInstance.(TelegramPlugin).OnStart()
 		return true
 	}
 	return false
@@ -95,10 +96,12 @@ func CheckIfPluginDisabled(name, state string) bool {
 	}
 
 	if plugin.State != "enabled" {
-		DisabledPlugins[name] = Plugins[name]
-		delete(Plugins, name)
-		dlog.Debugln("[" + name + "] Disabled")
-		return false
+		if v, ok := Plugins.Load(name); ok {
+			DisabledPlugins.Store(name, v.(TelegramPlugin))
+			Plugins.Delete(name)
+			dlog.Debugln("[" + name + "] Disabled")
+			return false
+		}
 	}
 
 	dlog.Debugln("[" + name + "] Started")
@@ -108,8 +111,8 @@ func CheckIfPluginDisabled(name, state string) bool {
 
 func CheckIfCommandIsAllowed(command, command2, role string) bool {
 	if command == command2 {
-		if _, ok := Commands[command]; ok {
-			roles := Commands[command].Roles
+		if v, ok := Commands.Load(command); ok {
+			roles := v.(Command).Roles
 			if _, ok2 := roles[role]; ok2 {
 				return true
 			}
@@ -130,11 +133,10 @@ func RegisterCommand(command string, description string, roles []string) {
 	for _, v := range roles {
 		r[v] = true
 	}
-
-	Commands[command] = Command{Description: description, Roles: r}
+	Commands.Store(command, Command{Description: description, Roles: r})
 }
 
 // UnRegister a Command exported by a plugin
 func UnregisterCommand(command string) {
-	delete(Commands, command)
+	Commands.Delete(command)
 }
