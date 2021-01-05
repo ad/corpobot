@@ -282,6 +282,8 @@ func userBirthday(update *tgbotapi.Update, user *database.User, args string) (bo
 		return true, err
 	}
 
+	lang := telegram.GetLanguage(update)
+
 	replyKeyboard := tgbotapi.InlineKeyboardMarkup{}
 
 	switch {
@@ -289,25 +291,25 @@ func userBirthday(update *tgbotapi.Update, user *database.User, args string) (bo
 		date := strings.TrimLeft(args, "<")
 		year, month, _, err := cal.ParseDate(date)
 		if err == nil {
-			replyKeyboard, _, _ = cal.HandlerPrevMonth("/userbirthday", year, time.Month(month))
+			replyKeyboard, _, _ = cal.HandlerPrevMonth("/userbirthday", year, time.Month(month), lang)
 		}
 	case strings.HasPrefix(args, ">"):
 		date := strings.TrimLeft(args, ">")
 		year, month, _, err := cal.ParseDate(date)
 		if err == nil {
-			replyKeyboard, _, _ = cal.HandlerNextMonth("/userbirthday", year, time.Month(month))
+			replyKeyboard, _, _ = cal.HandlerNextMonth("/userbirthday", year, time.Month(month), lang)
 		}
 	case strings.HasPrefix(args, "«"):
 		date := strings.TrimLeft(args, "«")
 		year, month, _, err := cal.ParseDate(date)
 		if err == nil {
-			replyKeyboard, _, _ = cal.HandlerPrevYear("/userbirthday", year, time.Month(month))
+			replyKeyboard, _, _ = cal.HandlerPrevYear("/userbirthday", year, time.Month(month), lang)
 		}
 	case strings.HasPrefix(args, "»"):
 		date := strings.TrimLeft(args, "»")
 		year, month, _, err := cal.ParseDate(date)
 		if err == nil {
-			replyKeyboard, _, _ = cal.HandlerNextYear("/userbirthday", year, time.Month(month))
+			replyKeyboard, _, _ = cal.HandlerNextYear("/userbirthday", year, time.Month(month), lang)
 		}
 	case strings.HasPrefix(args, "m"):
 		currentTime := time.Now()
@@ -320,7 +322,7 @@ func userBirthday(update *tgbotapi.Update, user *database.User, args string) (bo
 			year = year2
 			month = time.Month(month2)
 		}
-		replyKeyboard = cal.GenerateMonths("/userbirthday", year, month)
+		replyKeyboard = cal.GenerateMonths("/userbirthday", year, month, lang)
 	case strings.HasPrefix(args, "y"):
 		currentTime := time.Now()
 		year := currentTime.Year()
@@ -332,7 +334,7 @@ func userBirthday(update *tgbotapi.Update, user *database.User, args string) (bo
 			year = year2
 			month = time.Month(month2)
 		}
-		replyKeyboard = cal.GenerateYears("/userbirthday", year, month)
+		replyKeyboard = cal.GenerateYears("/userbirthday", year, month, lang)
 	default:
 		currentTime := time.Now()
 		year := currentTime.Year()
@@ -343,7 +345,7 @@ func userBirthday(update *tgbotapi.Update, user *database.User, args string) (bo
 			year = year2
 			month = time.Month(month2)
 		}
-		replyKeyboard = cal.GenerateCalendar("/userbirthday", year, month)
+		replyKeyboard = cal.GenerateCalendar("/userbirthday", year, month, lang)
 	}
 
 	if update.CallbackQuery != nil {

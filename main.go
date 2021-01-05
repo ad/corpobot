@@ -8,7 +8,6 @@ import (
 	database "github.com/ad/corpobot/db"
 	"github.com/ad/corpobot/plugins"
 	_ "github.com/ad/corpobot/plugins/admin"
-	_ "github.com/ad/corpobot/plugins/calendar"
 	_ "github.com/ad/corpobot/plugins/echo"
 	_ "github.com/ad/corpobot/plugins/groupchats"
 	_ "github.com/ad/corpobot/plugins/groups"
@@ -22,7 +21,7 @@ import (
 	tgbotapi "gopkg.in/telegram-bot-api.v4"
 )
 
-const version = "0.2.5"
+const version = "0.2.6"
 
 var (
 	err error

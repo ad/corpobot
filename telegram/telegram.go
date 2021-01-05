@@ -297,3 +297,17 @@ func GetArguments(update *tgbotapi.Update) string {
 
 	return ""
 }
+
+func GetLanguage(update *tgbotapi.Update) string {
+	if update.CallbackQuery != nil {
+		if update.CallbackQuery.From.LanguageCode != "" {
+			return update.CallbackQuery.From.LanguageCode
+		}
+	}
+
+	if update.Message != nil && update.Message.From.LanguageCode != "" {
+		return update.Message.From.LanguageCode
+	}
+
+	return ""
+}

@@ -13,7 +13,7 @@ import (
 func getMonthNames(lang string) [12]string {
 	switch lang {
 	case "ru":
-		return [12]string{"Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"}
+		return [12]string{"Янв", "Февр", "Март", "Апр", "Май", "Июнь", "Июль", "Авг", "Сент", "Окт", "Нояб", "Дек"}
 	default:
 		return [12]string{"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"}
 	}
@@ -29,56 +29,56 @@ func getWeekdayNames(lang string) [7]string {
 	}
 }
 
-func GenerateCalendar(command string, year int, month time.Month) tgbotapi.InlineKeyboardMarkup {
+func GenerateCalendar(command string, year int, month time.Month, lang string) tgbotapi.InlineKeyboardMarkup {
 	keyboard := tgbotapi.InlineKeyboardMarkup{}
-	keyboard = addMonthYearRow(command, year, month, keyboard)
-	keyboard = addDaysNamesRow(keyboard)
+	keyboard = addMonthYearRow(command, year, month, keyboard, lang)
+	keyboard = addDaysNamesRow(keyboard, lang)
 	keyboard = generateMonth(command, year, int(month), keyboard)
 	return keyboard
 }
 
-func GenerateMonths(command string, year int, month time.Month) tgbotapi.InlineKeyboardMarkup {
+func GenerateMonths(command string, year int, month time.Month, lang string) tgbotapi.InlineKeyboardMarkup {
 	keyboard := tgbotapi.InlineKeyboardMarkup{}
-	keyboard = addMonthYearRow(command, year, month, keyboard)
-	keyboard = addMonthsNamesRow(command, year, month, keyboard)
+	keyboard = addMonthYearRow(command, year, month, keyboard, lang)
+	keyboard = addMonthsNamesRow(command, year, month, keyboard, lang)
 	return keyboard
 }
 
-func GenerateYears(command string, year int, month time.Month) tgbotapi.InlineKeyboardMarkup {
+func GenerateYears(command string, year int, month time.Month, lang string) tgbotapi.InlineKeyboardMarkup {
 	keyboard := tgbotapi.InlineKeyboardMarkup{}
-	keyboard = addMonthYearRow(command, year, month, keyboard)
+	keyboard = addMonthYearRow(command, year, month, keyboard, lang)
 	keyboard = addYearsNamesRow(command, month, keyboard)
 	return keyboard
 }
 
-func HandlerPrevMonth(command string, year int, month time.Month) (tgbotapi.InlineKeyboardMarkup, int, time.Month) {
+func HandlerPrevMonth(command string, year int, month time.Month, lang string) (tgbotapi.InlineKeyboardMarkup, int, time.Month) {
 	if month != time.January {
 		month--
 	} else {
 		month = 12
 		year--
 	}
-	return GenerateCalendar(command, year, month), year, month
+	return GenerateCalendar(command, year, month, lang), year, month
 }
 
-func HandlerNextMonth(command string, year int, month time.Month) (tgbotapi.InlineKeyboardMarkup, int, time.Month) {
+func HandlerNextMonth(command string, year int, month time.Month, lang string) (tgbotapi.InlineKeyboardMarkup, int, time.Month) {
 	if month != time.December {
 		month++
 	} else {
 		month = 1
 		year++
 	}
-	return GenerateCalendar(command, year, month), year, month
+	return GenerateCalendar(command, year, month, lang), year, month
 }
 
-func HandlerPrevYear(command string, year int, month time.Month) (tgbotapi.InlineKeyboardMarkup, int, time.Month) {
+func HandlerPrevYear(command string, year int, month time.Month, lang string) (tgbotapi.InlineKeyboardMarkup, int, time.Month) {
 	year--
-	return GenerateCalendar(command, year, month), year, month
+	return GenerateCalendar(command, year, month, lang), year, month
 }
 
-func HandlerNextYear(command string, year int, month time.Month) (tgbotapi.InlineKeyboardMarkup, int, time.Month) {
+func HandlerNextYear(command string, year int, month time.Month, lang string) (tgbotapi.InlineKeyboardMarkup, int, time.Month) {
 	year++
-	return GenerateCalendar(command, year, month), year, month
+	return GenerateCalendar(command, year, month, lang), year, month
 }
 
 func ParseDate(date string) (int, int, int, error) {
@@ -109,9 +109,8 @@ func ParseDate(date string) (int, int, int, error) {
 	return 0, 0, 0, fmt.Errorf("%s", "wrong date format")
 }
 
-func addMonthYearRow(command string, year int, month time.Month, keyboard tgbotapi.InlineKeyboardMarkup) tgbotapi.InlineKeyboardMarkup {
+func addMonthYearRow(command string, year int, month time.Month, keyboard tgbotapi.InlineKeyboardMarkup, lang string) tgbotapi.InlineKeyboardMarkup {
 	var row []tgbotapi.InlineKeyboardButton
-	lang := "ru"
 	monthNames := getMonthNames(lang)
 	btnPrevYear := tgbotapi.NewInlineKeyboardButtonData("«", fmt.Sprintf("%s « %v.%d", command, year, month))
 	btnPrevMonth := tgbotapi.NewInlineKeyboardButtonData("<", fmt.Sprintf("%s < %v.%d", command, year, month))
@@ -124,8 +123,7 @@ func addMonthYearRow(command string, year int, month time.Month, keyboard tgbota
 	return keyboard
 }
 
-func addDaysNamesRow(keyboard tgbotapi.InlineKeyboardMarkup) tgbotapi.InlineKeyboardMarkup {
-	lang := "ru"
+func addDaysNamesRow(keyboard tgbotapi.InlineKeyboardMarkup, lang string) tgbotapi.InlineKeyboardMarkup {
 	days := getWeekdayNames(lang)
 	var rowDays []tgbotapi.InlineKeyboardButton
 	for _, day := range days {
@@ -136,8 +134,7 @@ func addDaysNamesRow(keyboard tgbotapi.InlineKeyboardMarkup) tgbotapi.InlineKeyb
 	return keyboard
 }
 
-func addMonthsNamesRow(command string, year int, month time.Month, keyboard tgbotapi.InlineKeyboardMarkup) tgbotapi.InlineKeyboardMarkup {
-	lang := "ru"
+func addMonthsNamesRow(command string, year int, month time.Month, keyboard tgbotapi.InlineKeyboardMarkup, lang string) tgbotapi.InlineKeyboardMarkup {
 	months := getMonthNames(lang)
 	var rowMonths []tgbotapi.InlineKeyboardButton
 	for i, m := range months {
