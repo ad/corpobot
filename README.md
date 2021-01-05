@@ -22,7 +22,6 @@
 
 Those are my commands: 
 - /broadcast - Send message to all users
-- /calendar - Show calendar
 - /groupaddgroupchat - Add groupchat to group
 - /groupadduser - Add user to group
 - /groupchatdelete - Delete groupchat
