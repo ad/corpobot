@@ -95,19 +95,20 @@ func userActions(update *tgbotapi.Update, user *database.User, args string) (boo
 			dlog.Errorln(err.Error())
 		}
 
-		edit := tgbotapi.EditMessageReplyMarkupConfig{
+		editKeyboard := tgbotapi.EditMessageTextConfig{
 			BaseEdit: tgbotapi.BaseEdit{
 				ChatID:      update.CallbackQuery.Message.Chat.ID,
 				MessageID:   update.CallbackQuery.Message.MessageID,
 				ReplyMarkup: &replyKeyboard,
 			},
+			Text: user.Paragraph(),
 		}
 
-		_, err = plugins.Bot.Send(edit)
+		_, err = plugins.Bot.Send(editKeyboard)
 		return true, err
 	}
 
-	return true, telegram.SendCustom(user.TelegramID, 0, "Choose action", false, &replyKeyboard)
+	return true, telegram.SendCustom(user.TelegramID, 0, user.Paragraph(), false, &replyKeyboard)
 }
 
 func userBlockUnblock(update *tgbotapi.Update, user *database.User, command, args string) (bool, error) {

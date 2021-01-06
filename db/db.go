@@ -59,7 +59,7 @@ func InitDB() (*sql.DB, error) {
 		"is_bot" bool NOT NULL,
 		"created_at" timestamp DEFAULT CURRENT_TIMESTAMP,
 		"updated_at" timestamp DEFAULT CURRENT_TIMESTAMP,
-		"birthday" timestamp DEFAULT NULL,
+		"birthday" datetime DEFAULT '',
 		CONSTRAINT "users_telegram_id" UNIQUE ("telegram_id") ON CONFLICT IGNORE
 	  );
 

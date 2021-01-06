@@ -21,7 +21,7 @@ import (
 	tgbotapi "gopkg.in/telegram-bot-api.v4"
 )
 
-const version = "0.2.7"
+const version = "0.2.8"
 
 var (
 	err error

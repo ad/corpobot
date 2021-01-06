@@ -20,26 +20,68 @@ type User struct {
 	TelegramID int64     `sql:"telegram_id"`
 	IsBot      bool      `sql:"is_bot"`
 	Role       string    `sql:"role"`
-	Birthday   time.Time `sql:"birthday,omitempty"`
+	Birthday   time.Time `sql:"birthday"`
 	CreatedAt  time.Time `sql:"created_at"`
 }
 
 func (u *User) String() string {
 	var b strings.Builder
-	b.WriteRune('@')
-	b.WriteString(u.UserName)
-	b.WriteRune(' ')
-	b.WriteString(u.FirstName)
-	b.WriteRune(' ')
-	b.WriteString(u.LastName)
-	b.WriteRune(' ')
-	b.WriteRune('[')
-	b.WriteString(strconv.FormatInt(u.TelegramID, 10))
-	b.WriteRune(']')
-	b.WriteRune(' ')
+	if u.UserName != "" {
+		b.WriteRune('@')
+		b.WriteString(u.UserName)
+		b.WriteRune(' ')
+	}
+	if u.FirstName != "" {
+		b.WriteString(u.FirstName)
+		b.WriteRune(' ')
+	}
+	if u.LastName != "" {
+		b.WriteString(u.LastName)
+		b.WriteRune(' ')
+	}
+	if u.TelegramID != 0 {
+		b.WriteRune('[')
+		b.WriteString(strconv.FormatInt(u.TelegramID, 10))
+		b.WriteRune(']')
+		b.WriteRune(' ')
+	}
 	b.WriteRune('(')
 	b.WriteString(u.Role)
 	b.WriteRune(')')
+
+	return b.String()
+}
+func (u *User) Paragraph() string {
+	var b strings.Builder
+	if u.FirstName != "" {
+		b.WriteString(u.FirstName)
+		b.WriteRune(' ')
+	}
+	if u.LastName != "" {
+		b.WriteString(u.LastName)
+		b.WriteRune(' ')
+	}
+	if u.FirstName != "" || u.LastName != "" {
+		b.WriteString("\n")
+	}
+	if u.UserName != "" {
+		b.WriteRune('@')
+		b.WriteString(u.UserName)
+		b.WriteString("\n")
+	}
+	if u.TelegramID != 0 {
+		b.WriteString("id ")
+		b.WriteString(strconv.FormatInt(u.TelegramID, 10))
+		b.WriteString("\n")
+	}
+	b.WriteString("Role: ")
+	b.WriteString(u.Role)
+	b.WriteString("\n")
+
+	if !u.Birthday.IsZero() {
+		b.WriteString("Birthday: ")
+		b.WriteString(u.Birthday.Format("2006.01.02"))
+	}
 	return b.String()
 }
 
