@@ -6,3 +6,5 @@
 db/corpobot.db
 
 release/
+
+.idea/
