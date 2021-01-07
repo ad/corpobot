@@ -5,8 +5,9 @@ import (
 	"strings"
 	"sync"
 
-	config "github.com/ad/corpobot/config"
+	"github.com/ad/corpobot/config"
 	database "github.com/ad/corpobot/db"
+
 	dlog "github.com/amoghe/distillog"
 	sql "github.com/lazada/sqle"
 	tgbotapi "gopkg.in/telegram-bot-api.v4"
@@ -14,7 +15,6 @@ import (
 
 // TelegramPlugin ...
 type TelegramPlugin interface {
-	//Run(update *tgbotapi.Update, command, args string, user *database.User) (bool, error)
 	OnStart()
 	OnStop()
 }
@@ -113,13 +113,11 @@ func CheckIfPluginDisabled(name, state string) bool {
 	return true
 }
 
-func CheckIfCommandIsAllowed(command, command2, role string) bool {
-	if command == command2 {
-		if v, ok := Commands.Load(command); ok {
-			roles := v.(Command).Roles
-			if _, ok2 := roles[role]; ok2 {
-				return true
-			}
+func CheckIfCommandIsAllowed(command, role string) bool {
+	if v, ok := Commands.Load(command); ok {
+		roles := v.(Command).Roles
+		if _, ok2 := roles[role]; ok2 {
+			return true
 		}
 	}
 
@@ -143,4 +141,9 @@ func RegisterCommand(command string, description string, roles []string, callbac
 // UnRegister a Command exported by a plugin
 func UnregisterCommand(command string) {
 	Commands.Delete(command)
+}
+
+func (cmd Command) IsAllowedForRole(role string) bool {
+	_, ok := cmd.Roles[role]
+	return ok
 }

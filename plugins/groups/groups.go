@@ -49,9 +49,6 @@ func (m *Plugin) OnStop() {
 }
 
 var groupList plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
-	if !plugins.CheckIfCommandIsAllowed(command, "grouplist", user.Role) {
-		return false, nil
-	}
 	groups, err := database.GetGroups(plugins.DB, strings.Fields(args))
 	if err != nil {
 		return true, err
@@ -81,9 +78,6 @@ var groupList plugins.CommandCallback = func(update *tgbotapi.Update, command, a
 }
 
 var groupCreate plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
-	if !plugins.CheckIfCommandIsAllowed(command, "groupcreate", user.Role) {
-		return false, nil
-	}
 	if args == "" {
 		return true, telegram.Send(user.TelegramID, "failed: empty group name")
 	}
@@ -101,10 +95,6 @@ var groupCreate plugins.CommandCallback = func(update *tgbotapi.Update, command,
 }
 
 var groupRename plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
-	if !plugins.CheckIfCommandIsAllowed(command, "grouprename", user.Role) {
-		return false, nil
-	}
-
 	names := strings.Split(args, "\n")
 
 	if len(names) != 2 {
@@ -130,9 +120,6 @@ var groupRename plugins.CommandCallback = func(update *tgbotapi.Update, command,
 }
 
 var groupDeleteUndelete plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
-	if !plugins.CheckIfCommandIsAllowed(command, "groupdelete", user.Role) && !plugins.CheckIfCommandIsAllowed(command, "groupundelete", user.Role) {
-		return false, nil
-	}
 	newState := "active"
 
 	if command == "groupdelete" {
@@ -157,9 +144,6 @@ var groupDeleteUndelete plugins.CommandCallback = func(update *tgbotapi.Update, 
 }
 
 var groupAddGroupChat plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
-	if !plugins.CheckIfCommandIsAllowed(command, "groupaddgroupchat", user.Role) {
-		return false, nil
-	}
 	params := strings.Split(args, "\n")
 
 	errorString := "failed: you must provide two lines (group name and groupchat id) with a new line between them"
@@ -198,9 +182,6 @@ var groupAddGroupChat plugins.CommandCallback = func(update *tgbotapi.Update, co
 }
 
 var groupDeleteGroupChat plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
-	if !plugins.CheckIfCommandIsAllowed(command, "groupdeletegroupchat", user.Role) {
-		return false, nil
-	}
 	params := strings.Split(args, "\n")
 
 	errorString := "failed: you must provide two lines (group name and groupchat id) with a new line between them"
@@ -239,9 +220,6 @@ var groupDeleteGroupChat plugins.CommandCallback = func(update *tgbotapi.Update,
 }
 
 var groupAddUser plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
-	if !plugins.CheckIfCommandIsAllowed(command, "groupadduser", user.Role) {
-		return false, nil
-	}
 	params := strings.Split(args, "\n")
 
 	errorString := "failed: you must provide two lines (group name and user id) with a new line between them"
@@ -280,9 +258,6 @@ var groupAddUser plugins.CommandCallback = func(update *tgbotapi.Update, command
 }
 
 var groupDeleteUser plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
-	if !plugins.CheckIfCommandIsAllowed(command, "groupdeleteuser", user.Role) {
-		return false, nil
-	}
 	params := strings.Split(args, "\n")
 
 	errorString := "failed: you must provide two lines (group name and user id) with a new line between them"

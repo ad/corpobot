@@ -32,10 +32,6 @@ func (m *Plugin) OnStop() {
 }
 
 var me plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
-	if !plugins.CheckIfCommandIsAllowed(command, "me", user.Role) {
-		return false, nil
-	}
-
 	msg := fmt.Sprintf("Hello %s, your ID: %d", user.UserName, user.TelegramID)
 
 	return true, telegram.Send(user.TelegramID, msg)

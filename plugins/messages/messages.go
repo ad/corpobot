@@ -37,10 +37,6 @@ func (m *Plugin) OnStop() {
 }
 
 var broadcast plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
-	if !plugins.CheckIfCommandIsAllowed(command, "broadcast", user.Role) {
-		return false, nil
-	}
-
 	if args == "" {
 		return true, telegram.Send(user.TelegramID, "failed: empty message")
 	}
@@ -69,9 +65,6 @@ var broadcast plugins.CommandCallback = func(update *tgbotapi.Update, command, a
 }
 
 var message plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
-	if !plugins.CheckIfCommandIsAllowed(command, "message", user.Role) {
-		return false, nil
-	}
 	errorString := "failed: you must provide user id message with a new line between them"
 	params := strings.Split(args, "\n")
 

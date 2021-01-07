@@ -34,18 +34,11 @@ func (m *Plugin) OnStop() {
 }
 
 var pluginList plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
-	if !plugins.CheckIfCommandIsAllowed(command, "pluginlist", user.Role) {
-		return false, nil
-	}
 	replyKeyboard := listPlugins()
 	return true, telegram.SendCustom(user.TelegramID, 0, "Choose action", false, &replyKeyboard)
 }
 
 var pluginEnable plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
-	if !plugins.CheckIfCommandIsAllowed(command, "pluginenable", user.Role) {
-		return false, nil
-	}
-
 	plugin := &database.Plugin{
 		Name:  args,
 		State: "enabled",
@@ -83,9 +76,6 @@ var pluginEnable plugins.CommandCallback = func(update *tgbotapi.Update, command
 }
 
 var pluginDisable plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
-	if !plugins.CheckIfCommandIsAllowed(command, "plugindisable", user.Role) {
-		return false, nil
-	}
 	plugin := &database.Plugin{
 		Name:  args,
 		State: "disabled",

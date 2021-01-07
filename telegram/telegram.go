@@ -159,9 +159,11 @@ func ProcessTelegramCommand(update *tgbotapi.Update, user *database.User) {
 			args := GetArguments(update)
 
 			cmd := cmd.(plugins.Command)
-			_, err := cmd.Callback(update, command, args, user)
-			if err != nil {
-				dlog.Errorln(err)
+			if cmd.IsAllowedForRole(user.Role) {
+				_, err := cmd.Callback(update, command, args, user)
+				if err != nil {
+					dlog.Errorln(err)
+				}
 			}
 		} else {
 			err := Send(user.TelegramID, "unknown command "+command+", use /help")

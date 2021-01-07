@@ -30,9 +30,5 @@ func (m *Plugin) OnStop() {
 }
 
 var echo plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
-	if plugins.CheckIfCommandIsAllowed(command, "echo", user.Role) {
-		return true, telegram.Send(user.TelegramID, command+" "+args)
-	}
-
-	return false, nil
+	return true, telegram.Send(user.TelegramID, command+" "+args)
 }

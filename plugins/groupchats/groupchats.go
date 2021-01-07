@@ -43,10 +43,6 @@ func (m *Plugin) OnStop() {
 }
 
 var groupChatList plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
-	if !plugins.CheckIfCommandIsAllowed(command, "groupchatlist", user.Role) {
-		return false, nil
-	}
-
 	groupchats, err := database.GetGroupchats(plugins.DB, strings.Fields(args))
 	if err != nil {
 		return true, err
@@ -66,10 +62,6 @@ var groupChatList plugins.CommandCallback = func(update *tgbotapi.Update, comman
 }
 
 var groupChatInviteGenerate plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
-	if !plugins.CheckIfCommandIsAllowed(command, "groupchatinvitegenerate", user.Role) {
-		return false, nil
-	}
-
 	if args == "" {
 		return true, telegram.Send(user.TelegramID, "failed: empty groupchat ID")
 	}
@@ -100,9 +92,6 @@ var groupChatInviteGenerate plugins.CommandCallback = func(update *tgbotapi.Upda
 }
 
 var groupChatUserBan plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
-	if !plugins.CheckIfCommandIsAllowed(command, "groupchatuserban", user.Role) {
-		return false, nil
-	}
 	errorString := "failed: you must provide the IDs of the user ans groupchat with a new line between them"
 
 	params := strings.Split(args, "\n")
@@ -148,9 +137,6 @@ var groupChatUserBan plugins.CommandCallback = func(update *tgbotapi.Update, com
 }
 
 var groupChatUserUnban plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
-	if !plugins.CheckIfCommandIsAllowed(command, "groupchatuserunban", user.Role) {
-		return false, nil
-	}
 	errorString := "failed: you must provide the IDs of the user ans groupchat with a new line between them"
 
 	params := strings.Split(args, "\n")
@@ -189,9 +175,6 @@ var groupChatUserUnban plugins.CommandCallback = func(update *tgbotapi.Update, c
 }
 
 var groupChatMembers plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
-	if !plugins.CheckIfCommandIsAllowed(command, "groupchatmembers", user.Role) {
-		return false, nil
-	}
 	errorString := "failed: you must provide the groupchat ID"
 
 	if args == "" {
@@ -226,9 +209,6 @@ var groupChatMembers plugins.CommandCallback = func(update *tgbotapi.Update, com
 }
 
 var groupChatDelete plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
-	if !plugins.CheckIfCommandIsAllowed(command, "groupchatdelete", user.Role) {
-		return false, nil
-	}
 	errorString := "failed: you must provide the groupchat ID"
 
 	if args == "" {

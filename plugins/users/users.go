@@ -50,19 +50,11 @@ func (m *Plugin) OnStop() {
 }
 
 var userList plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
-	if !plugins.CheckIfCommandIsAllowed(command, "userlist", user.Role) {
-		return false, nil
-	}
-
 	replyKeyboard := listUsers(args)
 	return true, telegram.SendCustom(user.TelegramID, 0, "Choose user", false, &replyKeyboard)
 }
 
 var user plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
-	if !plugins.CheckIfCommandIsAllowed(command, "user", user.Role) {
-		return false, nil
-	}
-
 	userID, err := strconv.ParseInt(args, 10, 64)
 	if err != nil {
 		return true, telegram.Send(user.TelegramID, "wrong telegramID provided")
@@ -92,10 +84,6 @@ var user plugins.CommandCallback = func(update *tgbotapi.Update, command, args s
 }
 
 var userPromote plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
-	if !plugins.CheckIfCommandIsAllowed(command, "userpromote", user.Role) {
-		return false, nil
-	}
-
 	errorString := "failed: you must provide TelegramID and new role with a new line between them"
 
 	params := strings.Split(args, "\n")
@@ -162,9 +150,6 @@ var userPromote plugins.CommandCallback = func(update *tgbotapi.Update, command,
 }
 
 var userBlockUnblock plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
-	if !plugins.CheckIfCommandIsAllowed(command, "userblock", user.Role) && !plugins.CheckIfCommandIsAllowed(command, "userunblock", user.Role) {
-		return false, nil
-	}
 	newRole := database.Member
 
 	if command == "userblock" {
@@ -224,9 +209,6 @@ var userBlockUnblock plugins.CommandCallback = func(update *tgbotapi.Update, com
 }
 
 var userDeleteUndelete plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
-	if !plugins.CheckIfCommandIsAllowed(command, "userdelete", user.Role) && !plugins.CheckIfCommandIsAllowed(command, "userundelete", user.Role) {
-		return false, nil
-	}
 	newRole := database.Member
 
 	if command == "userdelete" {
@@ -286,10 +268,6 @@ var userDeleteUndelete plugins.CommandCallback = func(update *tgbotapi.Update, c
 }
 
 var userBirthday plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
-	if !plugins.CheckIfCommandIsAllowed(command, "userbirthday", user.Role) {
-		return false, nil
-	}
-
 	if result, err := storeBirthday(update, user, args); result {
 		return true, err
 	}

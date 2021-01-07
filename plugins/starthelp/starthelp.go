@@ -34,23 +34,15 @@ func (m *Plugin) OnStop() {
 }
 
 var start plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
-	if !plugins.CheckIfCommandIsAllowed(command, "start", user.Role) {
-		return false, nil
-	}
-
 	return true, telegram.Send(user.TelegramID, "Hello! Send /help")
 }
 
 var help plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
-	if !plugins.CheckIfCommandIsAllowed(command, "help", user.Role) {
-		return false, nil
-	}
-
 	mk := make(map[string]string)
 	var keys []string
 
 	plugins.Commands.Range(func(k, v interface{}) bool {
-		if plugins.CheckIfCommandIsAllowed(k.(string), k.(string), user.Role) {
+		if plugins.CheckIfCommandIsAllowed(k.(string), user.Role) {
 			mk[k.(string)] = v.(plugins.Command).Description
 			keys = append(keys, k.(string))
 		}
