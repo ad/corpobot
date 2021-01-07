@@ -14,7 +14,7 @@ import (
 
 // TelegramPlugin ...
 type TelegramPlugin interface {
-	Run(update *tgbotapi.Update, command, args string, user *database.User) (bool, error)
+	//Run(update *tgbotapi.Update, command, args string, user *database.User) (bool, error)
 	OnStart()
 	OnStop()
 }
@@ -23,7 +23,10 @@ type TelegramPlugin interface {
 type Command struct {
 	Description string          `sql:"description"`
 	Roles       map[string]bool `sql:"roles"`
+	Callback    CommandCallback
 }
+
+type CommandCallback func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error)
 
 var (
 	Plugins         sync.Map
@@ -93,9 +96,10 @@ func CheckIfPluginDisabled(name, state string) bool {
 	plugin, err := database.AddPluginIfNotExist(DB, plugin)
 	if err != nil {
 		dlog.Errorln("failed: " + err.Error())
+		return false
 	}
 
-	if plugin.State != "enabled" {
+	if !plugin.IsEnabled() {
 		if v, ok := Plugins.Load(name); ok {
 			DisabledPlugins.Store(name, v.(TelegramPlugin))
 			Plugins.Delete(name)
@@ -128,12 +132,12 @@ func KeyOf(p TelegramPlugin) string {
 }
 
 // Register a Command exported by a plugin
-func RegisterCommand(command string, description string, roles []string) {
+func RegisterCommand(command string, description string, roles []string, callback CommandCallback) {
 	r := make(map[string]bool)
 	for _, v := range roles {
 		r[v] = true
 	}
-	Commands.Store(command, Command{Description: description, Roles: r})
+	Commands.Store(command, Command{Description: description, Roles: r, Callback: callback})
 }
 
 // UnRegister a Command exported by a plugin

@@ -6,13 +6,12 @@ import (
 
 	database "github.com/ad/corpobot/db"
 	"github.com/ad/corpobot/plugins"
-	telegram "github.com/ad/corpobot/telegram"
+	"github.com/ad/corpobot/telegram"
 	dlog "github.com/amoghe/distillog"
 	tgbotapi "gopkg.in/telegram-bot-api.v4"
 )
 
-type Plugin struct {
-}
+type Plugin struct{}
 
 func init() {
 	plugins.RegisterPlugin(&Plugin{})
@@ -23,8 +22,8 @@ func (m *Plugin) OnStart() {
 		return
 	}
 
-	plugins.RegisterCommand("start", "Bot /start command", []string{"new", "member", "admin", "owner"})
-	plugins.RegisterCommand("help", "Display this help", []string{"new", "member", "admin", "owner"})
+	plugins.RegisterCommand("start", "Bot /start command", []string{"new", "member", "admin", "owner"}, start)
+	plugins.RegisterCommand("help", "Display this help", []string{"new", "member", "admin", "owner"}, help)
 }
 
 func (m *Plugin) OnStop() {
@@ -34,35 +33,39 @@ func (m *Plugin) OnStop() {
 	plugins.UnregisterCommand("help")
 }
 
-func (m *Plugin) Run(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
-	if plugins.CheckIfCommandIsAllowed(command, "start", user.Role) {
-		return true, telegram.Send(user.TelegramID, "Hello! Send /help")
+var start plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
+	if !plugins.CheckIfCommandIsAllowed(command, "start", user.Role) {
+		return false, nil
 	}
 
-	if plugins.CheckIfCommandIsAllowed(command, "help", user.Role) {
-		mk := make(map[string]string)
-		var keys []string
+	return true, telegram.Send(user.TelegramID, "Hello! Send /help")
+}
 
-		plugins.Commands.Range(func(k, v interface{}) bool {
-			if plugins.CheckIfCommandIsAllowed(k.(string), k.(string), user.Role) {
-				mk[k.(string)] = v.(plugins.Command).Description
-				keys = append(keys, k.(string))
-			}
-			return true
-		})
+var help plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
+	if !plugins.CheckIfCommandIsAllowed(command, "help", user.Role) {
+		return false, nil
+	}
 
-		sort.Strings(keys)
-		var buffer bytes.Buffer
+	mk := make(map[string]string)
+	var keys []string
 
-		for _, k := range keys {
-			_, err := buffer.WriteString("/" + k + " - " + mk[k] + "\n")
-			if err != nil {
-				return true, err
-			}
+	plugins.Commands.Range(func(k, v interface{}) bool {
+		if plugins.CheckIfCommandIsAllowed(k.(string), k.(string), user.Role) {
+			mk[k.(string)] = v.(plugins.Command).Description
+			keys = append(keys, k.(string))
 		}
+		return true
+	})
 
-		return true, telegram.Send(user.TelegramID, "Those are my commands: \n"+buffer.String())
+	sort.Strings(keys)
+	var buffer bytes.Buffer
+
+	for _, k := range keys {
+		_, err := buffer.WriteString("/" + k + " - " + mk[k] + "\n")
+		if err != nil {
+			return true, err
+		}
 	}
 
-	return false, nil
+	return true, telegram.Send(user.TelegramID, "Those are my commands: \n"+buffer.String())
 }

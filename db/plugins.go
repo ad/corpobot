@@ -104,3 +104,7 @@ ORDER BY
 
 	return plugins, err
 }
+
+func (p *Plugin) IsEnabled() bool {
+	return p.State == "enabled"
+}

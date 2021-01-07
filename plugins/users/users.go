@@ -9,13 +9,13 @@ import (
 	cal "github.com/ad/corpobot/calendar"
 	database "github.com/ad/corpobot/db"
 	"github.com/ad/corpobot/plugins"
-	telegram "github.com/ad/corpobot/telegram"
+	"github.com/ad/corpobot/telegram"
+
 	dlog "github.com/amoghe/distillog"
 	tgbotapi "gopkg.in/telegram-bot-api.v4"
 )
 
-type Plugin struct {
-}
+type Plugin struct{}
 
 func init() {
 	plugins.RegisterPlugin(&Plugin{})
@@ -26,14 +26,14 @@ func (m *Plugin) OnStart() {
 		return
 	}
 
-	plugins.RegisterCommand("userlist", "User list", []string{database.Member, database.Admin, database.Owner})
-	plugins.RegisterCommand("user", "User actions", []string{database.Admin, database.Owner})
-	plugins.RegisterCommand("userpromote", "Change user role", []string{database.Admin, database.Owner})
-	plugins.RegisterCommand("userblock", "Block user", []string{database.Admin, database.Owner})
-	plugins.RegisterCommand("userdelete", "Delete user", []string{database.Admin, database.Owner})
-	plugins.RegisterCommand("userunblock", "Unblock user", []string{database.Admin, database.Owner})
-	plugins.RegisterCommand("userundelete", "Undelete user", []string{database.Admin, database.Owner})
-	plugins.RegisterCommand("userbirthday", "Set user birthday", []string{database.Member, database.Admin, database.Owner})
+	plugins.RegisterCommand("userlist", "User list", []string{database.Member, database.Admin, database.Owner}, userList)
+	plugins.RegisterCommand("user", "User actions", []string{database.Admin, database.Owner}, user)
+	plugins.RegisterCommand("userpromote", "Change user role", []string{database.Admin, database.Owner}, userPromote)
+	plugins.RegisterCommand("userblock", "Block user", []string{database.Admin, database.Owner}, userBlockUnblock)
+	plugins.RegisterCommand("userdelete", "Delete user", []string{database.Admin, database.Owner}, userDeleteUndelete)
+	plugins.RegisterCommand("userunblock", "Unblock user", []string{database.Admin, database.Owner}, userBlockUnblock)
+	plugins.RegisterCommand("userundelete", "Undelete user", []string{database.Admin, database.Owner}, userDeleteUndelete)
+	plugins.RegisterCommand("userbirthday", "Set user birthday", []string{database.Member, database.Admin, database.Owner}, userBirthday)
 }
 
 func (m *Plugin) OnStop() {
@@ -49,46 +49,26 @@ func (m *Plugin) OnStop() {
 	plugins.UnregisterCommand("userbirthday")
 }
 
-func (m *Plugin) Run(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
-	if plugins.CheckIfCommandIsAllowed(command, "userlist", user.Role) {
-		return userList(update, user, args)
+var userList plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
+	if !plugins.CheckIfCommandIsAllowed(command, "userlist", user.Role) {
+		return false, nil
 	}
 
-	if plugins.CheckIfCommandIsAllowed(command, "user", user.Role) {
-		return userActions(update, user, args)
-	}
-
-	if plugins.CheckIfCommandIsAllowed(command, "userblock", user.Role) || plugins.CheckIfCommandIsAllowed(command, "userunblock", user.Role) {
-		return userBlockUnblock(update, user, command, args)
-	}
-
-	if plugins.CheckIfCommandIsAllowed(command, "userdelete", user.Role) || plugins.CheckIfCommandIsAllowed(command, "userundelete", user.Role) {
-		return userDeleteUndelete(update, user, command, args)
-	}
-
-	if plugins.CheckIfCommandIsAllowed(command, "userpromote", user.Role) {
-		return userPromote(update, user, args)
-	}
-
-	if plugins.CheckIfCommandIsAllowed(command, "userbirthday", user.Role) {
-		return userBirthday(update, user, args)
-	}
-
-	return false, nil
-}
-
-func userList(update *tgbotapi.Update, user *database.User, args string) (bool, error) {
-	replyKeyboard := ListUsers(update, user, args)
+	replyKeyboard := listUsers(args)
 	return true, telegram.SendCustom(user.TelegramID, 0, "Choose user", false, &replyKeyboard)
 }
 
-func userActions(update *tgbotapi.Update, user *database.User, args string) (bool, error) {
+var user plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
+	if !plugins.CheckIfCommandIsAllowed(command, "user", user.Role) {
+		return false, nil
+	}
+
 	userID, err := strconv.ParseInt(args, 10, 64)
 	if err != nil {
 		return true, telegram.Send(user.TelegramID, "wrong telegramID provided")
 	}
 
-	replyKeyboard := userActionsList(update, user, userID)
+	replyKeyboard := userActionsList(userID)
 	if update.CallbackQuery != nil {
 		_, err := plugins.Bot.AnswerCallbackQuery(tgbotapi.NewCallback(update.CallbackQuery.ID, args+" success"))
 		if err != nil {
@@ -111,123 +91,11 @@ func userActions(update *tgbotapi.Update, user *database.User, args string) (boo
 	return true, telegram.SendCustom(user.TelegramID, 0, user.Paragraph(), false, &replyKeyboard)
 }
 
-func userBlockUnblock(update *tgbotapi.Update, user *database.User, command, args string) (bool, error) {
-	newRole := database.Member
-
-	if command == "userblock" {
-		newRole = database.Blocked
+var userPromote plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
+	if !plugins.CheckIfCommandIsAllowed(command, "userpromote", user.Role) {
+		return false, nil
 	}
 
-	var telegramID int64
-	n, err := strconv.ParseInt(args, 10, 64)
-	if err == nil {
-		telegramID = n
-	}
-
-	if telegramID == 0 {
-		return true, telegram.Send(user.TelegramID, "please provide user telegram ID")
-	}
-
-	u := &database.User{
-		TelegramID: telegramID,
-		Role:       newRole,
-	}
-
-	rows, err := database.UpdateUserRole(plugins.DB, u)
-	if err != nil {
-		return true, err
-	}
-
-	if rows != 1 {
-		return true, telegram.Send(user.TelegramID, "failed")
-	}
-
-	if update.CallbackQuery != nil {
-		_, err := plugins.Bot.AnswerCallbackQuery(tgbotapi.NewCallback(update.CallbackQuery.ID, args+" success"))
-		if err != nil {
-			dlog.Errorln(err.Error())
-		}
-
-		replyKeyboard := userActionsList(update, user, telegramID)
-		edit := tgbotapi.EditMessageReplyMarkupConfig{
-			BaseEdit: tgbotapi.BaseEdit{
-				ChatID:      update.CallbackQuery.Message.Chat.ID,
-				MessageID:   update.CallbackQuery.Message.MessageID,
-				ReplyMarkup: &replyKeyboard,
-			},
-		}
-
-		_, err = plugins.Bot.Send(edit)
-		return true, err
-	}
-
-	errNotifyUser := telegram.Send(telegramID, "you were assigned the role \""+newRole+"\", user /help for command list")
-	if errNotifyUser != nil {
-		dlog.Errorln(errNotifyUser.Error())
-	}
-
-	return true, telegram.Send(user.TelegramID, "success")
-}
-
-func userDeleteUndelete(update *tgbotapi.Update, user *database.User, command, args string) (bool, error) {
-	newRole := database.Member
-
-	if command == "userdelete" {
-		newRole = database.Deleted
-	}
-
-	var telegramID int64
-	n, err := strconv.ParseInt(args, 10, 64)
-	if err == nil {
-		telegramID = n
-	}
-
-	if telegramID == 0 {
-		return true, telegram.Send(user.TelegramID, "please provide user telegram ID")
-	}
-
-	u := &database.User{
-		TelegramID: telegramID,
-		Role:       newRole,
-	}
-
-	rows, err := database.UpdateUserRole(plugins.DB, u)
-	if err != nil {
-		return true, err
-	}
-
-	if rows != 1 {
-		return true, telegram.Send(user.TelegramID, "failed")
-	}
-
-	if update.CallbackQuery != nil {
-		_, err := plugins.Bot.AnswerCallbackQuery(tgbotapi.NewCallback(update.CallbackQuery.ID, args+" success"))
-		if err != nil {
-			dlog.Errorln(err.Error())
-		}
-
-		replyKeyboard := userActionsList(update, user, telegramID)
-		edit := tgbotapi.EditMessageReplyMarkupConfig{
-			BaseEdit: tgbotapi.BaseEdit{
-				ChatID:      update.CallbackQuery.Message.Chat.ID,
-				MessageID:   update.CallbackQuery.Message.MessageID,
-				ReplyMarkup: &replyKeyboard,
-			},
-		}
-
-		_, err = plugins.Bot.Send(edit)
-		return true, err
-	}
-
-	errNotifyUser := telegram.Send(telegramID, "you were assigned the role \""+newRole+"\", user /help for command list")
-	if errNotifyUser != nil {
-		dlog.Errorln(errNotifyUser.Error())
-	}
-
-	return true, telegram.Send(user.TelegramID, "success")
-}
-
-func userPromote(update *tgbotapi.Update, user *database.User, args string) (bool, error) {
 	errorString := "failed: you must provide TelegramID and new role with a new line between them"
 
 	params := strings.Split(args, "\n")
@@ -272,7 +140,7 @@ func userPromote(update *tgbotapi.Update, user *database.User, args string) (boo
 			dlog.Errorln(err.Error())
 		}
 
-		replyKeyboard := userActionsList(update, user, telegramID)
+		replyKeyboard := userActionsList(telegramID)
 		edit := tgbotapi.EditMessageReplyMarkupConfig{
 			BaseEdit: tgbotapi.BaseEdit{
 				ChatID:      update.CallbackQuery.Message.Chat.ID,
@@ -293,7 +161,135 @@ func userPromote(update *tgbotapi.Update, user *database.User, args string) (boo
 	return true, telegram.Send(user.TelegramID, "success")
 }
 
-func userBirthday(update *tgbotapi.Update, user *database.User, args string) (bool, error) {
+var userBlockUnblock plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
+	if !plugins.CheckIfCommandIsAllowed(command, "userblock", user.Role) && !plugins.CheckIfCommandIsAllowed(command, "userunblock", user.Role) {
+		return false, nil
+	}
+	newRole := database.Member
+
+	if command == "userblock" {
+		newRole = database.Blocked
+	}
+
+	var telegramID int64
+	n, err := strconv.ParseInt(args, 10, 64)
+	if err == nil {
+		telegramID = n
+	}
+
+	if telegramID == 0 {
+		return true, telegram.Send(user.TelegramID, "please provide user telegram ID")
+	}
+
+	u := &database.User{
+		TelegramID: telegramID,
+		Role:       newRole,
+	}
+
+	rows, err := database.UpdateUserRole(plugins.DB, u)
+	if err != nil {
+		return true, err
+	}
+
+	if rows != 1 {
+		return true, telegram.Send(user.TelegramID, "failed")
+	}
+
+	if update.CallbackQuery != nil {
+		_, err := plugins.Bot.AnswerCallbackQuery(tgbotapi.NewCallback(update.CallbackQuery.ID, args+" success"))
+		if err != nil {
+			dlog.Errorln(err.Error())
+		}
+
+		replyKeyboard := userActionsList(telegramID)
+		edit := tgbotapi.EditMessageReplyMarkupConfig{
+			BaseEdit: tgbotapi.BaseEdit{
+				ChatID:      update.CallbackQuery.Message.Chat.ID,
+				MessageID:   update.CallbackQuery.Message.MessageID,
+				ReplyMarkup: &replyKeyboard,
+			},
+		}
+
+		_, err = plugins.Bot.Send(edit)
+		return true, err
+	}
+
+	errNotifyUser := telegram.Send(telegramID, "you were assigned the role \""+newRole+"\", user /help for command list")
+	if errNotifyUser != nil {
+		dlog.Errorln(errNotifyUser.Error())
+	}
+
+	return true, telegram.Send(user.TelegramID, "success")
+
+}
+
+var userDeleteUndelete plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
+	if !plugins.CheckIfCommandIsAllowed(command, "userdelete", user.Role) && !plugins.CheckIfCommandIsAllowed(command, "userundelete", user.Role) {
+		return false, nil
+	}
+	newRole := database.Member
+
+	if command == "userdelete" {
+		newRole = database.Deleted
+	}
+
+	var telegramID int64
+	n, err := strconv.ParseInt(args, 10, 64)
+	if err == nil {
+		telegramID = n
+	}
+
+	if telegramID == 0 {
+		return true, telegram.Send(user.TelegramID, "please provide user telegram ID")
+	}
+
+	u := &database.User{
+		TelegramID: telegramID,
+		Role:       newRole,
+	}
+
+	rows, err := database.UpdateUserRole(plugins.DB, u)
+	if err != nil {
+		return true, err
+	}
+
+	if rows != 1 {
+		return true, telegram.Send(user.TelegramID, "failed")
+	}
+
+	if update.CallbackQuery != nil {
+		_, err := plugins.Bot.AnswerCallbackQuery(tgbotapi.NewCallback(update.CallbackQuery.ID, args+" success"))
+		if err != nil {
+			dlog.Errorln(err.Error())
+		}
+
+		replyKeyboard := userActionsList(telegramID)
+		edit := tgbotapi.EditMessageReplyMarkupConfig{
+			BaseEdit: tgbotapi.BaseEdit{
+				ChatID:      update.CallbackQuery.Message.Chat.ID,
+				MessageID:   update.CallbackQuery.Message.MessageID,
+				ReplyMarkup: &replyKeyboard,
+			},
+		}
+
+		_, err = plugins.Bot.Send(edit)
+		return true, err
+	}
+
+	errNotifyUser := telegram.Send(telegramID, "you were assigned the role \""+newRole+"\", user /help for command list")
+	if errNotifyUser != nil {
+		dlog.Errorln(errNotifyUser.Error())
+	}
+
+	return true, telegram.Send(user.TelegramID, "success")
+
+}
+
+var userBirthday plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
+	if !plugins.CheckIfCommandIsAllowed(command, "userbirthday", user.Role) {
+		return false, nil
+	}
+
 	if result, err := storeBirthday(update, user, args); result {
 		return true, err
 	}
@@ -421,7 +417,7 @@ func storeBirthday(update *tgbotapi.Update, user *database.User, args string) (b
 	return false, nil
 }
 
-func ListUsers(update *tgbotapi.Update, user *database.User, args string) tgbotapi.InlineKeyboardMarkup {
+func listUsers(args string) tgbotapi.InlineKeyboardMarkup {
 	buttons := make([][]tgbotapi.InlineKeyboardButton, 0)
 
 	users, err := database.GetUsers(plugins.DB, strings.Fields(args))
@@ -437,7 +433,7 @@ func ListUsers(update *tgbotapi.Update, user *database.User, args string) tgbota
 	return tgbotapi.NewInlineKeyboardMarkup(buttons...)
 }
 
-func userActionsList(update *tgbotapi.Update, user *database.User, userID int64) tgbotapi.InlineKeyboardMarkup {
+func userActionsList(userID int64) tgbotapi.InlineKeyboardMarkup {
 	buttons := make([][]tgbotapi.InlineKeyboardButton, 0)
 
 	userFromDB, err := database.GetUserByTelegramID(plugins.DB, &database.User{TelegramID: userID})

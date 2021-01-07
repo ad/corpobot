@@ -155,20 +155,14 @@ func ProcessTelegramCommand(update *tgbotapi.Update, user *database.User) {
 	}
 
 	if command != "" {
-		if _, ok := plugins.Commands.Load(command); ok {
+		if cmd, ok := plugins.Commands.Load(command); ok {
 			args := GetArguments(update)
 
-			plugins.Plugins.Range(func(k, v interface{}) bool {
-				result, err := v.(plugins.TelegramPlugin).Run(update, command, args, user)
-				if err != nil {
-					dlog.Errorln(err)
-				}
-
-				if result {
-					return false
-				}
-				return true
-			})
+			cmd := cmd.(plugins.Command)
+			_, err := cmd.Callback(update, command, args, user)
+			if err != nil {
+				dlog.Errorln(err)
+			}
 		} else {
 			err := Send(user.TelegramID, "unknown command "+command+", use /help")
 			if err != nil {
