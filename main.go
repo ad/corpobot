@@ -73,7 +73,7 @@ func main() {
 			plugins.Plugins.Range(func(k, v interface{}) bool {
 				wg.Add(1)
 				go func(){
-					wg.Done()
+					defer wg.Done()
 					v.(plugins.TelegramPlugin).OnStart()
 				}()
 				return true
