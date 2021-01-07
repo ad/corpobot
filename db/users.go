@@ -70,7 +70,7 @@ func (u *User) Paragraph() string {
 		b.WriteString("\n")
 	}
 	if u.TelegramID != 0 {
-		b.WriteString("id ")
+		b.WriteString("id: ")
 		b.WriteString(strconv.FormatInt(u.TelegramID, 10))
 		b.WriteString("\n")
 	}
