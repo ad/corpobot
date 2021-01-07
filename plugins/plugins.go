@@ -114,11 +114,9 @@ func CheckIfPluginDisabled(name, state string) bool {
 }
 
 func CheckIfCommandIsAllowed(command, role string) bool {
-	if v, ok := Commands.Load(command); ok {
-		roles := v.(Command).Roles
-		if _, ok2 := roles[role]; ok2 {
-			return true
-		}
+	if cmd, ok := Commands.Load(command); ok {
+		cmd := cmd.(Command)
+		return cmd.IsAllowedForRole(role)
 	}
 
 	return false
