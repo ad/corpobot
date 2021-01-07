@@ -93,6 +93,7 @@ func CheckIfPluginDisabled(name, state string) bool {
 	plugin, err := database.AddPluginIfNotExist(DB, plugin)
 	if err != nil {
 		dlog.Errorln("failed: " + err.Error())
+		return false
 	}
 
 	if plugin.State != "enabled" {
