@@ -3,13 +3,13 @@ package admin
 import (
 	database "github.com/ad/corpobot/db"
 	"github.com/ad/corpobot/plugins"
-	telegram "github.com/ad/corpobot/telegram"
+	"github.com/ad/corpobot/telegram"
+
 	dlog "github.com/amoghe/distillog"
 	tgbotapi "gopkg.in/telegram-bot-api.v4"
 )
 
-type Plugin struct {
-}
+type Plugin struct{}
 
 func init() {
 	plugins.RegisterPlugin(&Plugin{})
@@ -20,9 +20,9 @@ func (m *Plugin) OnStart() {
 		return
 	}
 
-	plugins.RegisterCommand("pluginlist", "List of plugins", []string{"owner"})
-	plugins.RegisterCommand("pluginenable", "Enable plugin", []string{"owner"})
-	plugins.RegisterCommand("plugindisable", "Disable plugin", []string{"owner"})
+	plugins.RegisterCommand("pluginlist", "List of plugins", []string{"owner"}, pluginList)
+	plugins.RegisterCommand("pluginenable", "Enable plugin", []string{"owner"}, pluginEnable)
+	plugins.RegisterCommand("plugindisable", "Disable plugin", []string{"owner"}, pluginDisable)
 }
 
 func (m *Plugin) OnStop() {
@@ -33,98 +33,94 @@ func (m *Plugin) OnStop() {
 	plugins.UnregisterCommand("plugindisable")
 }
 
-func (m *Plugin) Run(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
-	if plugins.CheckIfCommandIsAllowed(command, "pluginlist", user.Role) {
-		replyKeyboard := ListPlugins(update, user)
-		return true, telegram.SendCustom(user.TelegramID, 0, "Choose action", false, &replyKeyboard)
-	}
-
-	if plugins.CheckIfCommandIsAllowed(command, "pluginenable", user.Role) {
-		plugin := &database.Plugin{
-			Name:  args,
-			State: "enabled",
-		}
-
-		_, err := database.UpdatePluginState(plugins.DB, plugin)
-		if err != nil {
-			return true, telegram.Send(user.TelegramID, "failed: "+err.Error())
-		}
-		if plugins.EnablePlugin(args) {
-			if update.CallbackQuery != nil {
-				_, err := plugins.Bot.AnswerCallbackQuery(tgbotapi.NewCallback(update.CallbackQuery.ID, args+" enabled"))
-				if err != nil {
-					dlog.Errorln(err.Error())
-				}
-
-				replyKeyboard := ListPlugins(update, user)
-				edit := tgbotapi.EditMessageReplyMarkupConfig{
-					BaseEdit: tgbotapi.BaseEdit{
-						ChatID:      update.CallbackQuery.Message.Chat.ID,
-						MessageID:   update.CallbackQuery.Message.MessageID,
-						ReplyMarkup: &replyKeyboard,
-					},
-				}
-
-				_, err = plugins.Bot.Send(edit)
-				return true, err
-			}
-
-			return true, telegram.Send(user.TelegramID, args+" enabled")
-		}
-
-		replyKeyboard := ListPlugins(update, user)
-		return true, telegram.SendCustom(user.TelegramID, 0, "Choose action", false, &replyKeyboard)
-	}
-
-	if plugins.CheckIfCommandIsAllowed(command, "plugindisable", user.Role) {
-		plugin := &database.Plugin{
-			Name:  args,
-			State: "disabled",
-		}
-
-		_, err := database.UpdatePluginState(plugins.DB, plugin)
-		if err != nil {
-			return true, telegram.Send(user.TelegramID, "failed: "+err.Error())
-		}
-		if plugins.DisablePlugin(args) {
-			if update.CallbackQuery != nil {
-				_, err := plugins.Bot.AnswerCallbackQuery(tgbotapi.NewCallback(update.CallbackQuery.ID, args+" disabled"))
-				if err != nil {
-					dlog.Errorln(err.Error())
-				}
-				replyKeyboard := ListPlugins(update, user)
-				edit := tgbotapi.EditMessageReplyMarkupConfig{
-					BaseEdit: tgbotapi.BaseEdit{
-						ChatID:      update.CallbackQuery.Message.Chat.ID,
-						MessageID:   update.CallbackQuery.Message.MessageID,
-						ReplyMarkup: &replyKeyboard,
-					},
-				}
-
-				_, err = plugins.Bot.Send(edit)
-				return true, err
-			}
-
-			return true, telegram.Send(user.TelegramID, args+" disabled")
-		}
-		replyKeyboard := ListPlugins(update, user)
-		return true, telegram.SendCustom(user.TelegramID, 0, "Choose action", false, &replyKeyboard)
-	}
-
-	return false, nil
+var pluginList plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) error {
+	replyKeyboard := listPlugins()
+	return telegram.SendCustom(user.TelegramID, 0, "Choose action", false, &replyKeyboard)
 }
 
-func ListPlugins(update *tgbotapi.Update, user *database.User) tgbotapi.InlineKeyboardMarkup {
+var pluginEnable plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) error {
+	plugin := &database.Plugin{
+		Name:  args,
+		State: "enabled",
+	}
+
+	_, err := database.UpdatePluginState(plugins.DB, plugin)
+	if err != nil {
+		return telegram.Send(user.TelegramID, "failed: "+err.Error())
+	}
+	if plugins.EnablePlugin(args) {
+		if update.CallbackQuery != nil {
+			_, err := plugins.Bot.AnswerCallbackQuery(tgbotapi.NewCallback(update.CallbackQuery.ID, args+" enabled"))
+			if err != nil {
+				dlog.Errorln(err.Error())
+			}
+
+			replyKeyboard := listPlugins()
+			edit := tgbotapi.EditMessageReplyMarkupConfig{
+				BaseEdit: tgbotapi.BaseEdit{
+					ChatID:      update.CallbackQuery.Message.Chat.ID,
+					MessageID:   update.CallbackQuery.Message.MessageID,
+					ReplyMarkup: &replyKeyboard,
+				},
+			}
+
+			_, err = plugins.Bot.Send(edit)
+			return err
+		}
+
+		return telegram.Send(user.TelegramID, args+" enabled")
+	}
+
+	replyKeyboard := listPlugins()
+	return telegram.SendCustom(user.TelegramID, 0, "Choose action", false, &replyKeyboard)
+}
+
+var pluginDisable plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) error {
+	plugin := &database.Plugin{
+		Name:  args,
+		State: "disabled",
+	}
+
+	_, err := database.UpdatePluginState(plugins.DB, plugin)
+	if err != nil {
+		return telegram.Send(user.TelegramID, "failed: "+err.Error())
+	}
+	if plugins.DisablePlugin(args) {
+		if update.CallbackQuery != nil {
+			_, err := plugins.Bot.AnswerCallbackQuery(tgbotapi.NewCallback(update.CallbackQuery.ID, args+" disabled"))
+			if err != nil {
+				dlog.Errorln(err.Error())
+			}
+			replyKeyboard := listPlugins()
+			edit := tgbotapi.EditMessageReplyMarkupConfig{
+				BaseEdit: tgbotapi.BaseEdit{
+					ChatID:      update.CallbackQuery.Message.Chat.ID,
+					MessageID:   update.CallbackQuery.Message.MessageID,
+					ReplyMarkup: &replyKeyboard,
+				},
+			}
+
+			_, err = plugins.Bot.Send(edit)
+			return err
+		}
+
+		return telegram.Send(user.TelegramID, args+" disabled")
+	}
+	replyKeyboard := listPlugins()
+	return telegram.SendCustom(user.TelegramID, 0, "Choose action", false, &replyKeyboard)
+}
+
+func listPlugins() tgbotapi.InlineKeyboardMarkup {
 	buttons := make([][]tgbotapi.InlineKeyboardButton, 0)
 
-	plugins, err := database.GetPlugins(plugins.DB)
+	allPlugins, err := database.GetPlugins(plugins.DB)
 	if err != nil {
 		dlog.Errorln(err.Error())
 		return tgbotapi.NewInlineKeyboardMarkup(buttons...)
 	}
 
-	for _, plugin := range plugins {
-		if plugin.State == "enabled" {
+	for _, plugin := range allPlugins {
+		if plugin.IsEnabled() {
 			buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("disable "+plugin.Name, "/plugindisable "+plugin.Name)))
 		} else {
 			buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("enable "+plugin.Name, "/pluginenable "+plugin.Name)))

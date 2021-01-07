@@ -3,16 +3,15 @@ package me
 import (
 	"fmt"
 
-	"github.com/ad/corpobot/plugins"
-
 	database "github.com/ad/corpobot/db"
-	telegram "github.com/ad/corpobot/telegram"
+	"github.com/ad/corpobot/plugins"
+	"github.com/ad/corpobot/telegram"
+
 	dlog "github.com/amoghe/distillog"
 	tgbotapi "gopkg.in/telegram-bot-api.v4"
 )
 
-type Plugin struct {
-}
+type Plugin struct{}
 
 func init() {
 	plugins.RegisterPlugin(&Plugin{})
@@ -23,7 +22,7 @@ func (m *Plugin) OnStart() {
 		return
 	}
 
-	plugins.RegisterCommand("me", "Your ID/username", []string{"new", "member", "admin", "owner"})
+	plugins.RegisterCommand("me", "Your ID/username", []string{"new", "member", "admin", "owner"}, me)
 }
 
 func (m *Plugin) OnStop() {
@@ -32,12 +31,7 @@ func (m *Plugin) OnStop() {
 	plugins.UnregisterCommand("me")
 }
 
-func (m *Plugin) Run(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
-	if plugins.CheckIfCommandIsAllowed(command, "me", user.Role) {
-		msg := fmt.Sprintf("Hello %s, your ID: %d", user.UserName, user.TelegramID)
-
-		return true, telegram.Send(user.TelegramID, msg)
-	}
-
-	return false, nil
+var me plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) error {
+	msg := fmt.Sprintf("Hello %s, your ID: %d", user.UserName, user.TelegramID)
+	return telegram.Send(user.TelegramID, msg)
 }

@@ -5,8 +5,9 @@ import (
 	"strings"
 	"sync"
 
-	config "github.com/ad/corpobot/config"
+	"github.com/ad/corpobot/config"
 	database "github.com/ad/corpobot/db"
+
 	dlog "github.com/amoghe/distillog"
 	sql "github.com/lazada/sqle"
 	tgbotapi "gopkg.in/telegram-bot-api.v4"
@@ -14,7 +15,6 @@ import (
 
 // TelegramPlugin ...
 type TelegramPlugin interface {
-	Run(update *tgbotapi.Update, command, args string, user *database.User) (bool, error)
 	OnStart()
 	OnStop()
 }
@@ -23,7 +23,10 @@ type TelegramPlugin interface {
 type Command struct {
 	Description string          `sql:"description"`
 	Roles       map[string]bool `sql:"roles"`
+	Callback    CommandCallback
 }
+
+type CommandCallback func(update *tgbotapi.Update, command, args string, user *database.User) error
 
 var (
 	Plugins         sync.Map
@@ -96,7 +99,7 @@ func CheckIfPluginDisabled(name, state string) bool {
 		return false
 	}
 
-	if plugin.State != "enabled" {
+	if !plugin.IsEnabled() {
 		if v, ok := Plugins.Load(name); ok {
 			DisabledPlugins.Store(name, v.(TelegramPlugin))
 			Plugins.Delete(name)
@@ -110,14 +113,10 @@ func CheckIfPluginDisabled(name, state string) bool {
 	return true
 }
 
-func CheckIfCommandIsAllowed(command, command2, role string) bool {
-	if command == command2 {
-		if v, ok := Commands.Load(command); ok {
-			roles := v.(Command).Roles
-			if _, ok2 := roles[role]; ok2 {
-				return true
-			}
-		}
+func CheckIfCommandIsAllowed(command, role string) bool {
+	if cmd, ok := Commands.Load(command); ok {
+		cmd := cmd.(Command)
+		return cmd.IsAllowedForRole(role)
 	}
 
 	return false
@@ -129,15 +128,20 @@ func KeyOf(p TelegramPlugin) string {
 }
 
 // Register a Command exported by a plugin
-func RegisterCommand(command string, description string, roles []string) {
+func RegisterCommand(command string, description string, roles []string, callback CommandCallback) {
 	r := make(map[string]bool)
 	for _, v := range roles {
 		r[v] = true
 	}
-	Commands.Store(command, Command{Description: description, Roles: r})
+	Commands.Store(command, Command{Description: description, Roles: r, Callback: callback})
 }
 
 // UnRegister a Command exported by a plugin
 func UnregisterCommand(command string) {
 	Commands.Delete(command)
+}
+
+func (cmd Command) IsAllowedForRole(role string) bool {
+	_, ok := cmd.Roles[role]
+	return ok
 }
