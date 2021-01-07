@@ -72,7 +72,7 @@ func main() {
 			// Bootstrapper for plugins
 			plugins.Plugins.Range(func(k, v interface{}) bool {
 				wg.Add(1)
-				go func(){
+				go func() {
 					defer wg.Done()
 					v.(plugins.TelegramPlugin).OnStart()
 				}()
