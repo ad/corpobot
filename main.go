@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"sync"
 	"time"
 
 	config "github.com/ad/corpobot/config"
@@ -66,11 +67,18 @@ func main() {
 	dlog.Debugln("Waiting for plugins...")
 	for {
 		if plugins.DB != nil && plugins.DB.Ping() == nil {
+			var wg sync.WaitGroup
+
 			// Bootstrapper for plugins
 			plugins.Plugins.Range(func(k, v interface{}) bool {
-				go v.(plugins.TelegramPlugin).OnStart()
+				wg.Add(1)
+				go func() {
+					defer wg.Done()
+					v.(plugins.TelegramPlugin).OnStart()
+				}()
 				return true
 			})
+			wg.Wait()
 			break
 		}
 		time.Sleep(time.Second)
