@@ -33,12 +33,12 @@ func (m *Plugin) OnStop() {
 	plugins.UnregisterCommand("plugindisable")
 }
 
-var pluginList plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
+var pluginList plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) error {
 	replyKeyboard := listPlugins()
-	return true, telegram.SendCustom(user.TelegramID, 0, "Choose action", false, &replyKeyboard)
+	return telegram.SendCustom(user.TelegramID, 0, "Choose action", false, &replyKeyboard)
 }
 
-var pluginEnable plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
+var pluginEnable plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) error {
 	plugin := &database.Plugin{
 		Name:  args,
 		State: "enabled",
@@ -46,7 +46,7 @@ var pluginEnable plugins.CommandCallback = func(update *tgbotapi.Update, command
 
 	_, err := database.UpdatePluginState(plugins.DB, plugin)
 	if err != nil {
-		return true, telegram.Send(user.TelegramID, "failed: "+err.Error())
+		return telegram.Send(user.TelegramID, "failed: "+err.Error())
 	}
 	if plugins.EnablePlugin(args) {
 		if update.CallbackQuery != nil {
@@ -65,17 +65,17 @@ var pluginEnable plugins.CommandCallback = func(update *tgbotapi.Update, command
 			}
 
 			_, err = plugins.Bot.Send(edit)
-			return true, err
+			return err
 		}
 
-		return true, telegram.Send(user.TelegramID, args+" enabled")
+		return telegram.Send(user.TelegramID, args+" enabled")
 	}
 
 	replyKeyboard := listPlugins()
-	return true, telegram.SendCustom(user.TelegramID, 0, "Choose action", false, &replyKeyboard)
+	return telegram.SendCustom(user.TelegramID, 0, "Choose action", false, &replyKeyboard)
 }
 
-var pluginDisable plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
+var pluginDisable plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) error {
 	plugin := &database.Plugin{
 		Name:  args,
 		State: "disabled",
@@ -83,7 +83,7 @@ var pluginDisable plugins.CommandCallback = func(update *tgbotapi.Update, comman
 
 	_, err := database.UpdatePluginState(plugins.DB, plugin)
 	if err != nil {
-		return true, telegram.Send(user.TelegramID, "failed: "+err.Error())
+		return telegram.Send(user.TelegramID, "failed: "+err.Error())
 	}
 	if plugins.DisablePlugin(args) {
 		if update.CallbackQuery != nil {
@@ -101,25 +101,25 @@ var pluginDisable plugins.CommandCallback = func(update *tgbotapi.Update, comman
 			}
 
 			_, err = plugins.Bot.Send(edit)
-			return true, err
+			return err
 		}
 
-		return true, telegram.Send(user.TelegramID, args+" disabled")
+		return telegram.Send(user.TelegramID, args+" disabled")
 	}
 	replyKeyboard := listPlugins()
-	return true, telegram.SendCustom(user.TelegramID, 0, "Choose action", false, &replyKeyboard)
+	return telegram.SendCustom(user.TelegramID, 0, "Choose action", false, &replyKeyboard)
 }
 
 func listPlugins() tgbotapi.InlineKeyboardMarkup {
 	buttons := make([][]tgbotapi.InlineKeyboardButton, 0)
 
-	plugins, err := database.GetPlugins(plugins.DB)
+	allPlugins, err := database.GetPlugins(plugins.DB)
 	if err != nil {
 		dlog.Errorln(err.Error())
 		return tgbotapi.NewInlineKeyboardMarkup(buttons...)
 	}
 
-	for _, plugin := range plugins {
+	for _, plugin := range allPlugins {
 		if plugin.IsEnabled() {
 			buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("disable "+plugin.Name, "/plugindisable "+plugin.Name)))
 		} else {

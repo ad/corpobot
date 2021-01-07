@@ -36,14 +36,14 @@ func (m *Plugin) OnStop() {
 	plugins.UnregisterCommand("message")
 }
 
-var broadcast plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
+var broadcast plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) error {
 	if args == "" {
-		return true, telegram.Send(user.TelegramID, "failed: empty message")
+		return telegram.Send(user.TelegramID, "failed: empty message")
 	}
 
 	users, err := database.GetUsers(plugins.DB, []string{})
 	if err != nil {
-		return true, telegram.Send(user.TelegramID, err.Error())
+		return telegram.Send(user.TelegramID, err.Error())
 	}
 
 	if len(users) > 0 {
@@ -58,35 +58,35 @@ var broadcast plugins.CommandCallback = func(update *tgbotapi.Update, command, a
 			}
 		}
 
-		return true, telegram.Send(user.TelegramID, strings.Join(usersList, "\n"))
+		return telegram.Send(user.TelegramID, strings.Join(usersList, "\n"))
 	}
 
-	return true, telegram.Send(user.TelegramID, args+" broadcast")
+	return telegram.Send(user.TelegramID, args+" broadcast")
 }
 
-var message plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
+var message plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) error {
 	errorString := "failed: you must provide user id message with a new line between them"
 	params := strings.Split(args, "\n")
 
 	if len(params) != 2 {
-		return true, telegram.Send(user.TelegramID, "failed: empty message")
+		return telegram.Send(user.TelegramID, "failed: empty message")
 	}
 
 	userIDstring, message := strings.TrimSpace(params[0]), strings.TrimSpace(params[1])
 
 	if userIDstring == "" || message == "" {
-		return true, telegram.Send(user.TelegramID, errorString)
+		return telegram.Send(user.TelegramID, errorString)
 	}
 
 	userID, err := strconv.ParseInt(userIDstring, 10, 64)
 	if err != nil {
-		return true, telegram.Send(user.TelegramID, errorString)
+		return telegram.Send(user.TelegramID, errorString)
 	}
 
 	err = telegram.Send(userID, message)
 	if err != nil {
-		return true, telegram.Send(user.TelegramID, err.Error())
+		return telegram.Send(user.TelegramID, err.Error())
 	}
 
-	return true, telegram.Send(user.TelegramID, "message sent")
+	return telegram.Send(user.TelegramID, "message sent")
 }

@@ -26,7 +26,7 @@ type Command struct {
 	Callback    CommandCallback
 }
 
-type CommandCallback func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error)
+type CommandCallback func(update *tgbotapi.Update, command, args string, user *database.User) error
 
 var (
 	Plugins         sync.Map

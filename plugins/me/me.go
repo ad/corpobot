@@ -31,8 +31,7 @@ func (m *Plugin) OnStop() {
 	plugins.UnregisterCommand("me")
 }
 
-var me plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
+var me plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) error {
 	msg := fmt.Sprintf("Hello %s, your ID: %d", user.UserName, user.TelegramID)
-
-	return true, telegram.Send(user.TelegramID, msg)
+	return telegram.Send(user.TelegramID, msg)
 }

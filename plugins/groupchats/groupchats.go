@@ -42,10 +42,10 @@ func (m *Plugin) OnStop() {
 	plugins.UnregisterCommand("groupchatdelete")
 }
 
-var groupChatList plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
+var groupChatList plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) error {
 	groupchats, err := database.GetGroupchats(plugins.DB, strings.Fields(args))
 	if err != nil {
-		return true, err
+		return err
 	}
 
 	if len(groupchats) > 0 {
@@ -55,20 +55,20 @@ var groupChatList plugins.CommandCallback = func(update *tgbotapi.Update, comman
 			groupchatsList = append(groupchatsList, "• "+u.String())
 		}
 
-		return true, telegram.Send(user.TelegramID, strings.Join(groupchatsList, "\n"))
+		return telegram.Send(user.TelegramID, strings.Join(groupchatsList, "\n"))
 	}
 
-	return true, telegram.Send(user.TelegramID, "groupchat list is empty")
+	return telegram.Send(user.TelegramID, "groupchat list is empty")
 }
 
-var groupChatInviteGenerate plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
+var groupChatInviteGenerate plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) error {
 	if args == "" {
-		return true, telegram.Send(user.TelegramID, "failed: empty groupchat ID")
+		return telegram.Send(user.TelegramID, "failed: empty groupchat ID")
 	}
 
 	telegramID, err := strconv.ParseInt(args, 10, 64)
 	if err != nil {
-		return true, telegram.Send(user.TelegramID, "failed: "+err.Error())
+		return telegram.Send(user.TelegramID, "failed: "+err.Error())
 	}
 
 	groupchat := &database.Groupchat{
@@ -77,33 +77,33 @@ var groupChatInviteGenerate plugins.CommandCallback = func(update *tgbotapi.Upda
 
 	inviteLink, err := plugins.Bot.GetInviteLink(tgbotapi.ChatConfig{ChatID: groupchat.TelegramID})
 	if err != nil {
-		return true, telegram.Send(user.TelegramID, "failed: "+err.Error())
+		return telegram.Send(user.TelegramID, "failed: "+err.Error())
 	}
 
 	groupchat.InviteLink = inviteLink
 	if groupchat.InviteLink != "" {
 		_, err := database.UpdateGroupChatInviteLink(plugins.DB, groupchat)
 		if err != nil {
-			return true, telegram.Send(user.TelegramID, "failed: "+err.Error())
+			return telegram.Send(user.TelegramID, "failed: "+err.Error())
 		}
 	}
 
-	return true, telegram.Send(user.TelegramID, "success")
+	return telegram.Send(user.TelegramID, "success")
 }
 
-var groupChatUserBan plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
+var groupChatUserBan plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) error {
 	errorString := "failed: you must provide the IDs of the user ans groupchat with a new line between them"
 
 	params := strings.Split(args, "\n")
 
 	if len(params) != 2 {
-		return true, telegram.Send(user.TelegramID, errorString)
+		return telegram.Send(user.TelegramID, errorString)
 	}
 
 	userIDstring, groupchatIDstring := strings.TrimSpace(params[0]), strings.TrimSpace(params[1])
 
 	if userIDstring == "" || groupchatIDstring == "" {
-		return true, telegram.Send(user.TelegramID, errorString)
+		return telegram.Send(user.TelegramID, errorString)
 	}
 
 	var userID int
@@ -118,7 +118,7 @@ var groupChatUserBan plugins.CommandCallback = func(update *tgbotapi.Update, com
 	}
 
 	if userID == 0 || groupchatID == 0 {
-		return true, telegram.Send(user.TelegramID, errorString)
+		return telegram.Send(user.TelegramID, errorString)
 	}
 
 	_, err = plugins.Bot.KickChatMember(
@@ -130,25 +130,25 @@ var groupChatUserBan plugins.CommandCallback = func(update *tgbotapi.Update, com
 		},
 	)
 	if err != nil {
-		return true, telegram.Send(user.TelegramID, "failed: "+err.Error())
+		return telegram.Send(user.TelegramID, "failed: "+err.Error())
 	}
 
-	return true, telegram.Send(user.TelegramID, "success")
+	return telegram.Send(user.TelegramID, "success")
 }
 
-var groupChatUserUnban plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
+var groupChatUserUnban plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) error {
 	errorString := "failed: you must provide the IDs of the user ans groupchat with a new line between them"
 
 	params := strings.Split(args, "\n")
 
 	if len(params) != 2 {
-		return true, telegram.Send(user.TelegramID, errorString)
+		return telegram.Send(user.TelegramID, errorString)
 	}
 
 	userIDstring, groupchatIDstring := strings.TrimSpace(params[0]), strings.TrimSpace(params[1])
 
 	if userIDstring == "" || groupchatIDstring == "" {
-		return true, telegram.Send(user.TelegramID, errorString)
+		return telegram.Send(user.TelegramID, errorString)
 	}
 
 	var userID int
@@ -163,22 +163,22 @@ var groupChatUserUnban plugins.CommandCallback = func(update *tgbotapi.Update, c
 	}
 
 	if userID == 0 || groupchatID == 0 {
-		return true, telegram.Send(user.TelegramID, errorString)
+		return telegram.Send(user.TelegramID, errorString)
 	}
 
 	_, err = plugins.Bot.UnbanChatMember(tgbotapi.ChatMemberConfig{ChatID: groupchatID, UserID: userID})
 	if err != nil {
-		return true, telegram.Send(user.TelegramID, "failed: "+err.Error())
+		return telegram.Send(user.TelegramID, "failed: "+err.Error())
 	}
 
-	return true, telegram.Send(user.TelegramID, "success")
+	return telegram.Send(user.TelegramID, "success")
 }
 
-var groupChatMembers plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
+var groupChatMembers plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) error {
 	errorString := "failed: you must provide the groupchat ID"
 
 	if args == "" {
-		return true, telegram.Send(user.TelegramID, errorString)
+		return telegram.Send(user.TelegramID, errorString)
 	}
 
 	var groupchatID int64
@@ -188,12 +188,12 @@ var groupChatMembers plugins.CommandCallback = func(update *tgbotapi.Update, com
 	}
 
 	if groupchatID == 0 {
-		return true, telegram.Send(user.TelegramID, errorString)
+		return telegram.Send(user.TelegramID, errorString)
 	}
 
 	result, err := plugins.Bot.GetChatAdministrators(tgbotapi.ChatConfig{ChatID: groupchatID})
 	if err != nil {
-		return true, telegram.Send(user.TelegramID, "failed: "+err.Error())
+		return telegram.Send(user.TelegramID, "failed: "+err.Error())
 	}
 
 	if len(result) > 0 {
@@ -202,17 +202,17 @@ var groupChatMembers plugins.CommandCallback = func(update *tgbotapi.Update, com
 		for _, u := range result {
 			usersList = append(usersList, "@"+u.User.UserName+" "+u.User.FirstName+" "+u.User.LastName+" ["+strconv.Itoa(u.User.ID)+"] ("+u.Status+")")
 		}
-		return true, telegram.Send(user.TelegramID, strings.Join(usersList, "\n"))
+		return telegram.Send(user.TelegramID, strings.Join(usersList, "\n"))
 	}
 
-	return true, telegram.Send(user.TelegramID, "users not found")
+	return telegram.Send(user.TelegramID, "users not found")
 }
 
-var groupChatDelete plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
+var groupChatDelete plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) error {
 	errorString := "failed: you must provide the groupchat ID"
 
 	if args == "" {
-		return true, telegram.Send(user.TelegramID, errorString)
+		return telegram.Send(user.TelegramID, errorString)
 	}
 
 	var groupchatID int64
@@ -222,17 +222,17 @@ var groupChatDelete plugins.CommandCallback = func(update *tgbotapi.Update, comm
 	}
 
 	if groupchatID == 0 {
-		return true, telegram.Send(user.TelegramID, errorString)
+		return telegram.Send(user.TelegramID, errorString)
 	}
 
 	result, err := database.GroupChatDelete(plugins.DB, &database.Groupchat{TelegramID: groupchatID})
 	if err != nil {
-		return true, telegram.Send(user.TelegramID, "failed: "+err.Error())
+		return telegram.Send(user.TelegramID, "failed: "+err.Error())
 	}
 
 	if result {
-		return true, telegram.Send(user.TelegramID, "success")
+		return telegram.Send(user.TelegramID, "success")
 	}
 
-	return true, telegram.Send(user.TelegramID, "failed")
+	return telegram.Send(user.TelegramID, "failed")
 }

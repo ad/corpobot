@@ -33,11 +33,11 @@ func (m *Plugin) OnStop() {
 	plugins.UnregisterCommand("help")
 }
 
-var start plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
-	return true, telegram.Send(user.TelegramID, "Hello! Send /help")
+var start plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) error {
+	return telegram.Send(user.TelegramID, "Hello! Send /help")
 }
 
-var help plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
+var help plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) error {
 	mk := make(map[string]string)
 	var keys []string
 
@@ -55,9 +55,9 @@ var help plugins.CommandCallback = func(update *tgbotapi.Update, command, args s
 	for _, k := range keys {
 		_, err := buffer.WriteString("/" + k + " - " + mk[k] + "\n")
 		if err != nil {
-			return true, err
+			return err
 		}
 	}
 
-	return true, telegram.Send(user.TelegramID, "Those are my commands: \n"+buffer.String())
+	return telegram.Send(user.TelegramID, "Those are my commands: \n"+buffer.String())
 }

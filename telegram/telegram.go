@@ -160,8 +160,7 @@ func ProcessTelegramCommand(update *tgbotapi.Update, user *database.User) {
 
 			cmd := cmd.(plugins.Command)
 			if cmd.IsAllowedForRole(user.Role) {
-				_, err := cmd.Callback(update, command, args, user)
-				if err != nil {
+				if err := cmd.Callback(update, command, args, user); err != nil {
 					dlog.Errorln(err)
 				}
 			}

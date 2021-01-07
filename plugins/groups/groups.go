@@ -48,10 +48,10 @@ func (m *Plugin) OnStop() {
 	plugins.UnregisterCommand("groupdeleteuser")
 }
 
-var groupList plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
+var groupList plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) error {
 	groups, err := database.GetGroups(plugins.DB, strings.Fields(args))
 	if err != nil {
-		return true, err
+		return err
 	}
 
 	if len(groups) > 0 {
@@ -62,7 +62,7 @@ var groupList plugins.CommandCallback = func(update *tgbotapi.Update, command, a
 
 			groupchats, err := database.GetGroupchatsByGroupID(plugins.DB, u.ID)
 			if err != nil {
-				return true, err
+				return err
 			}
 			if len(groupchats) > 0 {
 				for _, c := range groupchats {
@@ -71,15 +71,15 @@ var groupList plugins.CommandCallback = func(update *tgbotapi.Update, command, a
 			}
 		}
 
-		return true, telegram.Send(user.TelegramID, strings.Join(groupsList, "\n"))
+		return telegram.Send(user.TelegramID, strings.Join(groupsList, "\n"))
 	}
 
-	return true, telegram.Send(user.TelegramID, "group list is empty")
+	return telegram.Send(user.TelegramID, "group list is empty")
 }
 
-var groupCreate plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
+var groupCreate plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) error {
 	if args == "" {
-		return true, telegram.Send(user.TelegramID, "failed: empty group name")
+		return telegram.Send(user.TelegramID, "failed: empty group name")
 	}
 
 	group := &database.Group{
@@ -88,38 +88,38 @@ var groupCreate plugins.CommandCallback = func(update *tgbotapi.Update, command,
 
 	_, err := database.AddGroupIfNotExist(plugins.DB, group)
 	if err != nil {
-		return true, telegram.Send(user.TelegramID, "failed: "+err.Error())
+		return telegram.Send(user.TelegramID, "failed: "+err.Error())
 	}
 
-	return true, telegram.Send(user.TelegramID, "group created")
+	return telegram.Send(user.TelegramID, "group created")
 }
 
-var groupRename plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
+var groupRename plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) error {
 	names := strings.Split(args, "\n")
 
 	if len(names) != 2 {
-		return true, telegram.Send(user.TelegramID, "failed: you must provide the names of the two groups with a new line between them")
+		return telegram.Send(user.TelegramID, "failed: you must provide the names of the two groups with a new line between them")
 	}
 
 	oldName, newName := strings.TrimSpace(names[0]), strings.TrimSpace(names[1])
 
 	if oldName == "" || newName == "" {
-		return true, telegram.Send(user.TelegramID, "failed: you must provide the names of the two groups with a new line between them")
+		return telegram.Send(user.TelegramID, "failed: you must provide the names of the two groups with a new line between them")
 	}
 
 	rows, err := database.UpdateGroupName(plugins.DB, oldName, newName)
 	if err != nil {
-		return true, err
+		return err
 	}
 
 	if rows != 1 {
-		return true, telegram.Send(user.TelegramID, "failed")
+		return telegram.Send(user.TelegramID, "failed")
 	}
 
-	return true, telegram.Send(user.TelegramID, "success")
+	return telegram.Send(user.TelegramID, "success")
 }
 
-var groupDeleteUndelete plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
+var groupDeleteUndelete plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) error {
 	newState := "active"
 
 	if command == "groupdelete" {
@@ -133,164 +133,164 @@ var groupDeleteUndelete plugins.CommandCallback = func(update *tgbotapi.Update, 
 
 	rows, err := database.UpdateGroupState(plugins.DB, group)
 	if err != nil {
-		return true, err
+		return err
 	}
 
 	if rows != 1 {
-		return true, telegram.Send(user.TelegramID, "failed")
+		return telegram.Send(user.TelegramID, "failed")
 	}
 
-	return true, telegram.Send(user.TelegramID, "success")
+	return telegram.Send(user.TelegramID, "success")
 }
 
-var groupAddGroupChat plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
+var groupAddGroupChat plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) error {
 	params := strings.Split(args, "\n")
 
 	errorString := "failed: you must provide two lines (group name and groupchat id) with a new line between them"
 
 	if len(params) != 2 {
-		return true, telegram.Send(user.TelegramID, errorString)
+		return telegram.Send(user.TelegramID, errorString)
 	}
 
 	groupName, groupchatIDstring := strings.TrimSpace(params[0]), strings.TrimSpace(params[1])
 
 	if groupName == "" || groupchatIDstring == "" {
-		return true, telegram.Send(user.TelegramID, errorString)
+		return telegram.Send(user.TelegramID, errorString)
 	}
 
 	groupchatID, err := strconv.ParseInt(groupchatIDstring, 10, 64)
 	if err != nil {
-		return true, telegram.Send(user.TelegramID, errorString)
+		return telegram.Send(user.TelegramID, errorString)
 	}
 
 	group, err := database.GetGroupByName(plugins.DB, &database.Group{Name: groupName})
 	if err != nil {
-		return true, telegram.Send(user.TelegramID, err.Error())
+		return telegram.Send(user.TelegramID, err.Error())
 	}
 
 	groupchat, err := database.GetGroupChatByTelegramID(plugins.DB, &database.Groupchat{TelegramID: groupchatID})
 	if err != nil {
-		return true, telegram.Send(user.TelegramID, err.Error())
+		return telegram.Send(user.TelegramID, err.Error())
 	}
 
 	_, err = database.AddGroupGroupChatIfNotExist(plugins.DB, group, groupchat)
 	if err != nil {
-		return true, telegram.Send(user.TelegramID, err.Error())
+		return telegram.Send(user.TelegramID, err.Error())
 	}
 
-	return true, telegram.Send(user.TelegramID, "success")
+	return telegram.Send(user.TelegramID, "success")
 }
 
-var groupDeleteGroupChat plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
+var groupDeleteGroupChat plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) error {
 	params := strings.Split(args, "\n")
 
 	errorString := "failed: you must provide two lines (group name and groupchat id) with a new line between them"
 
 	if len(params) != 2 {
-		return true, telegram.Send(user.TelegramID, errorString)
+		return telegram.Send(user.TelegramID, errorString)
 	}
 
 	groupName, groupchatIDstring := strings.TrimSpace(params[0]), strings.TrimSpace(params[1])
 
 	if groupName == "" || groupchatIDstring == "" {
-		return true, telegram.Send(user.TelegramID, errorString)
+		return telegram.Send(user.TelegramID, errorString)
 	}
 
 	groupchatID, err := strconv.ParseInt(groupchatIDstring, 10, 64)
 	if err != nil {
-		return true, telegram.Send(user.TelegramID, errorString)
+		return telegram.Send(user.TelegramID, errorString)
 	}
 
 	group, err := database.GetGroupByName(plugins.DB, &database.Group{Name: groupName})
 	if err != nil {
-		return true, telegram.Send(user.TelegramID, err.Error())
+		return telegram.Send(user.TelegramID, err.Error())
 	}
 
 	groupchat, err := database.GetGroupChatByTelegramID(plugins.DB, &database.Groupchat{TelegramID: groupchatID})
 	if err != nil {
-		return true, telegram.Send(user.TelegramID, err.Error())
+		return telegram.Send(user.TelegramID, err.Error())
 	}
 
 	_, err = database.DeleteGroupGroupChat(plugins.DB, group, groupchat)
 	if err != nil {
-		return true, telegram.Send(user.TelegramID, err.Error())
+		return telegram.Send(user.TelegramID, err.Error())
 	}
 
-	return true, telegram.Send(user.TelegramID, "success")
+	return telegram.Send(user.TelegramID, "success")
 }
 
-var groupAddUser plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
+var groupAddUser plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) error {
 	params := strings.Split(args, "\n")
 
 	errorString := "failed: you must provide two lines (group name and user id) with a new line between them"
 
 	if len(params) != 2 {
-		return true, telegram.Send(user.TelegramID, errorString)
+		return telegram.Send(user.TelegramID, errorString)
 	}
 
 	groupName, userIDstring := strings.TrimSpace(params[0]), strings.TrimSpace(params[1])
 
 	if groupName == "" || userIDstring == "" {
-		return true, telegram.Send(user.TelegramID, errorString)
+		return telegram.Send(user.TelegramID, errorString)
 	}
 
 	userID, err := strconv.ParseInt(userIDstring, 10, 64)
 	if err != nil {
-		return true, telegram.Send(user.TelegramID, errorString)
+		return telegram.Send(user.TelegramID, errorString)
 	}
 
 	group, err := database.GetGroupByName(plugins.DB, &database.Group{Name: groupName})
 	if err != nil {
-		return true, telegram.Send(user.TelegramID, err.Error())
+		return telegram.Send(user.TelegramID, err.Error())
 	}
 
 	userFromDB, err := database.GetUserByTelegramID(plugins.DB, &database.User{TelegramID: userID})
 	if err != nil {
-		return true, telegram.Send(user.TelegramID, err.Error())
+		return telegram.Send(user.TelegramID, err.Error())
 	}
 
 	_, err = database.AddGroupUserIfNotExist(plugins.DB, group, userFromDB)
 	if err != nil {
-		return true, telegram.Send(user.TelegramID, err.Error())
+		return telegram.Send(user.TelegramID, err.Error())
 	}
 
-	return true, telegram.Send(user.TelegramID, "success")
+	return telegram.Send(user.TelegramID, "success")
 }
 
-var groupDeleteUser plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
+var groupDeleteUser plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) error {
 	params := strings.Split(args, "\n")
 
 	errorString := "failed: you must provide two lines (group name and user id) with a new line between them"
 
 	if len(params) != 2 {
-		return true, telegram.Send(user.TelegramID, errorString)
+		return telegram.Send(user.TelegramID, errorString)
 	}
 
 	groupName, userIDstring := strings.TrimSpace(params[0]), strings.TrimSpace(params[1])
 
 	if groupName == "" || userIDstring == "" {
-		return true, telegram.Send(user.TelegramID, errorString)
+		return telegram.Send(user.TelegramID, errorString)
 	}
 
 	userID, err := strconv.ParseInt(userIDstring, 10, 64)
 	if err != nil {
-		return true, telegram.Send(user.TelegramID, errorString)
+		return telegram.Send(user.TelegramID, errorString)
 	}
 
 	group, err := database.GetGroupByName(plugins.DB, &database.Group{Name: groupName})
 	if err != nil {
-		return true, telegram.Send(user.TelegramID, err.Error())
+		return telegram.Send(user.TelegramID, err.Error())
 	}
 
 	userFromDB, err := database.GetUserByTelegramID(plugins.DB, &database.User{TelegramID: userID})
 	if err != nil {
-		return true, telegram.Send(user.TelegramID, err.Error())
+		return telegram.Send(user.TelegramID, err.Error())
 	}
 
 	_, err = database.DeleteGroupUser(plugins.DB, group, userFromDB)
 	if err != nil {
-		return true, telegram.Send(user.TelegramID, err.Error())
+		return telegram.Send(user.TelegramID, err.Error())
 	}
 
-	return true, telegram.Send(user.TelegramID, "success")
+	return telegram.Send(user.TelegramID, "success")
 }

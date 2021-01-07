@@ -29,6 +29,6 @@ func (m *Plugin) OnStop() {
 	plugins.UnregisterCommand("echo")
 }
 
-var echo plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) (bool, error) {
-	return true, telegram.Send(user.TelegramID, command+" "+args)
+var echo plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) error {
+	return telegram.Send(user.TelegramID, command+" "+args)
 }
