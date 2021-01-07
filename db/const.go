@@ -15,8 +15,10 @@ const (
 
 	Deleted = "deleted"
 	Blocked = "blocked"
-	New     = "new"
-	Member  = "member"
-	Admin   = "admin"
-	Owner   = "owner"
+	Active  = "active"
+
+	New    = "new"
+	Member = "member"
+	Admin  = "admin"
+	Owner  = "owner"
 )

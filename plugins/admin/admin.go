@@ -20,9 +20,9 @@ func (m *Plugin) OnStart() {
 		return
 	}
 
-	plugins.RegisterCommand("pluginlist", "List of plugins", []string{"owner"}, pluginList)
-	plugins.RegisterCommand("pluginenable", "Enable plugin", []string{"owner"}, pluginEnable)
-	plugins.RegisterCommand("plugindisable", "Disable plugin", []string{"owner"}, pluginDisable)
+	plugins.RegisterCommand("pluginlist", "List of plugins", []string{database.Owner}, pluginList)
+	plugins.RegisterCommand("pluginenable", "Enable plugin", []string{database.Owner}, pluginEnable)
+	plugins.RegisterCommand("plugindisable", "Disable plugin", []string{database.Owner}, pluginDisable)
 }
 
 func (m *Plugin) OnStop() {

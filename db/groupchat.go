@@ -37,7 +37,7 @@ func (gc *Groupchat) String() string {
 // GetGroupchats ...
 func GetGroupchats(db *sql.DB, states []string) (groupchats []*Groupchat, err error) {
 	if len(states) == 0 {
-		states = []string{"active"}
+		states = []string{Active}
 	}
 
 	args := make([]interface{}, len(states))

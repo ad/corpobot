@@ -28,7 +28,7 @@ func AddGroupIfNotExist(db *sql.DB, group *Group) (*Group, error) {
 	var returnModel Group
 
 	if group.State == "" {
-		group.State = "active"
+		group.State = Active
 	}
 
 	result, err := QuerySQLObject(db, returnModel, `SELECT * FROM groups WHERE name = ?;`, group.Name)
@@ -36,7 +36,7 @@ func AddGroupIfNotExist(db *sql.DB, group *Group) (*Group, error) {
 		return nil, err
 	}
 
-	if returnModel, ok := result.Interface().(*Group); ok && returnModel.State == "deleted" {
+	if returnModel, ok := result.Interface().(*Group); ok && returnModel.State == Deleted {
 		return returnModel, fmt.Errorf(GroupDeleted)
 	}
 
@@ -68,7 +68,7 @@ func AddGroupIfNotExist(db *sql.DB, group *Group) (*Group, error) {
 // GetGroups ...
 func GetGroups(db *sql.DB, states []string) (groups []*Group, err error) {
 	if len(states) == 0 {
-		states = []string{"active"}
+		states = []string{Active}
 	}
 
 	args := make([]interface{}, len(states))

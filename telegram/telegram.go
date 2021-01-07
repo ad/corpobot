@@ -85,15 +85,15 @@ func ProcessTelegramMessages(db *sql.DB, bot *tgbotapi.BotAPI, updates tgbotapi.
 
 		if user.Role == "" {
 			if user.TelegramID == int64(plugins.Config.BotOwnerID) {
-				user.Role = "owner"
+				user.Role = database.Owner
 			} else {
-				user.Role = "new"
+				user.Role = database.New
 			}
 		}
 
 		user, errAddUser := database.AddUserIfNotExist(db, user)
 		if errAddUser == nil {
-			users, errGetUsers := database.GetUsers(db, []string{"admin", "owner"})
+			users, errGetUsers := database.GetUsers(db, []string{database.Admin, database.Owner})
 			if errGetUsers == nil {
 				newUserMessage := "New user registered: " + user.String()
 				replyKeyboard := tgbotapi.NewInlineKeyboardMarkup(tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("user info", "/user "+strconv.FormatInt(user.TelegramID, 10))))
@@ -202,7 +202,7 @@ func updateGroupChat(db *sql.DB, message *tgbotapi.Message) {
 			Title:      message.Chat.Title,
 			TelegramID: message.Chat.ID,
 			InviteLink: message.Chat.InviteLink,
-			State:      "active",
+			State:      database.Active,
 		}
 		_, err := database.AddGroupChatIfNotExist(db, &groupchat)
 		if err != nil && err.Error() != database.GroupChatAlreadyExists {

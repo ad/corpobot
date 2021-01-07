@@ -22,8 +22,8 @@ func (m *Plugin) OnStart() {
 		return
 	}
 
-	plugins.RegisterCommand("start", "Bot /start command", []string{"new", "member", "admin", "owner"}, start)
-	plugins.RegisterCommand("help", "Display this help", []string{"new", "member", "admin", "owner"}, help)
+	plugins.RegisterCommand("start", "Bot /start command", []string{database.New, database.Member, database.Admin, database.Owner}, start)
+	plugins.RegisterCommand("help", "Display this help", []string{database.New, database.Member, database.Admin, database.Owner}, help)
 }
 
 func (m *Plugin) OnStop() {
@@ -42,8 +42,9 @@ var help plugins.CommandCallback = func(update *tgbotapi.Update, command, args s
 	var keys []string
 
 	plugins.Commands.Range(func(k, v interface{}) bool {
-		if plugins.CheckIfCommandIsAllowed(k.(string), user.Role) {
-			mk[k.(string)] = v.(plugins.Command).Description
+		cmd := v.(plugins.Command)
+		if cmd.IsAllowedForRole(user.Role) {
+			mk[k.(string)] = cmd.Description
 			keys = append(keys, k.(string))
 		}
 		return true
