@@ -207,16 +207,12 @@ func QuerySQLList(db *sql.DB, returnModel interface{}, sql string, args ...inter
 
 // StoreTelegramMessage ...
 func StoreTelegramMessage(db *sql.DB, message *TelegramMessage) error {
-	_, err2 := db.Exec(
+	_, err := db.Exec(
 		"INSERT INTO telegram_messages (telegram_id, message, created_at, is_incoming) VALUES (?, ?, ?, ?);",
 		message.TelegramID,
 		message.Message,
 		message.Date,
 		message.IsIncoming)
 
-	if err2 != nil {
-		return err2
-	}
-
-	return nil
+	return err
 }

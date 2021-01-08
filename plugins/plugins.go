@@ -113,15 +113,6 @@ func CheckIfPluginDisabled(name, state string) bool {
 	return true
 }
 
-func CheckIfCommandIsAllowed(command, role string) bool {
-	if cmd, ok := Commands.Load(command); ok {
-		cmd := cmd.(Command)
-		return cmd.IsAllowedForRole(role)
-	}
-
-	return false
-}
-
 // KeyOf ...
 func KeyOf(p TelegramPlugin) string {
 	return strings.TrimPrefix(reflect.TypeOf(p).String(), "*")

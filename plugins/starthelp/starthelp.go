@@ -42,8 +42,9 @@ var help plugins.CommandCallback = func(update *tgbotapi.Update, command, args s
 	var keys []string
 
 	plugins.Commands.Range(func(k, v interface{}) bool {
-		if plugins.CheckIfCommandIsAllowed(k.(string), user.Role) {
-			mk[k.(string)] = v.(plugins.Command).Description
+		cmd := v.(plugins.Command)
+		if cmd.IsAllowedForRole(user.Role) {
+			mk[k.(string)] = cmd.Description
 			keys = append(keys, k.(string))
 		}
 		return true
