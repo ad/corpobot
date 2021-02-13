@@ -2,7 +2,9 @@ package meetingroom
 
 import (
 	"strings"
+	"time"
 
+	cal "github.com/ad/corpobot/calendar"
 	database "github.com/ad/corpobot/db"
 	"github.com/ad/corpobot/plugins"
 	"github.com/ad/corpobot/telegram"
@@ -88,7 +90,7 @@ func (m *Plugin) OnStart() {
 	plugins.RegisterCommand("meetingroomblock", "Block meetingroom", []string{"admin", "owner"}, meetingroomBlock)
 	plugins.RegisterCommand("meetingroomactivate", "Activate meetingroom", []string{"admin", "owner"}, meetingroomActivate)
 
-	plugins.RegisterCommand("meetingroomschedule", "Return schedule of meetingroom", []string{"member", "admin", "owner"}, meetingroomschedule)
+	plugins.RegisterCommand("meetingroomschedule", "Return schedule of meetingroom", []string{"member", "admin", "owner"}, meetingroomSchedule)
 	plugins.RegisterCommand("meetingroombook", "Book meetingroom", []string{"member", "admin", "owner"}, meetingroombook)
 	plugins.RegisterCommand("meetingroomrebook", "Rebook meetingroom", []string{"member", "admin", "owner"}, meetingroomrebook)
 	plugins.RegisterCommand("meetingroomunbook", "Unbook meetingroom", []string{"member", "admin", "owner"}, meetingroomunbook)
@@ -225,8 +227,153 @@ var meetingroomActivate plugins.CommandCallback = func(update *tgbotapi.Update, 
 	return telegram.Send(user.TelegramID, "success")
 }
 
-var meetingroomschedule plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) error {
-	return telegram.Send(user.TelegramID, "not implemented")
+var meetingroomSchedule plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) error {
+	params := strings.Split(args, "\n")
+	if args == "" {
+		meetingrooms, err := database.GetMeetingrooms(plugins.DB, strings.Fields(args))
+		if err != nil {
+			return err
+		}
+
+		if len(meetingrooms) == 0 {
+			return telegram.Send(user.TelegramID, "meetingroom list is empty")
+		}
+
+		buttons := make([][]tgbotapi.InlineKeyboardButton, 0)
+
+		for _, m := range meetingrooms {
+			buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(m.String(), "/meetingroomschedule "+m.String())))
+		}
+
+		replyKeyboard := tgbotapi.NewInlineKeyboardMarkup(buttons...)
+
+		return telegram.SendCustom(user.TelegramID, 0, "Choose meetingroom and date to show schedule", false, &replyKeyboard)
+	}
+
+	var m *database.Meetingroom
+	if len(params) <= 2 {
+		var err2 error
+		m, err2 = database.GetMeetingroomByName(plugins.DB, &database.Meetingroom{Name: params[0]})
+		if err2 != nil {
+			return telegram.Send(user.TelegramID, "Meetingroom not found, try another name")
+		}
+	}
+
+	dateValue := ""
+	if len(params) == 2 {
+		dateValue = params[1]
+	}
+
+	if m.ID != 0 && dateValue != "" {
+		schedules, err := database.GetMeetingroomScheduleByID(plugins.DB, m, dateValue)
+		if err != nil {
+			return err
+		}
+
+		if len(schedules) == 0 {
+			return telegram.Send(user.TelegramID, "schedule not found")
+		}
+
+		buttons := make([][]tgbotapi.InlineKeyboardButton, 0)
+
+		for _, s := range schedules {
+			creator, err := database.GetUserByID(plugins.DB, &database.User{ID: s.Creator})
+			if err != nil {
+				creator = &database.User{ID: s.Creator}
+			}
+			buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(creator.Short()+": "+s.String(), "/meetingroomschedule "+s.String())))
+		}
+
+		replyKeyboard := tgbotapi.NewInlineKeyboardMarkup(buttons...)
+
+		return telegram.SendCustom(user.TelegramID, 0, "Schedule "+dateValue, false, &replyKeyboard)
+	}
+
+	lang := telegram.GetLanguage(update)
+
+	replyKeyboard := tgbotapi.InlineKeyboardMarkup{}
+
+	switch {
+	case strings.HasPrefix(dateValue, "<"):
+		date := strings.TrimLeft(dateValue, "<")
+		year, month, _, err := cal.ParseDate(date)
+		if err == nil {
+			replyKeyboard, _, _ = cal.HandlerPrevMonth("/meetingroomschedule "+params[0]+"\n", year, time.Month(month), lang)
+		}
+	case strings.HasPrefix(dateValue, ">"):
+		date := strings.TrimLeft(dateValue, ">")
+		year, month, _, err := cal.ParseDate(date)
+		if err == nil {
+			replyKeyboard, _, _ = cal.HandlerNextMonth("/meetingroomschedule "+params[0]+"\n", year, time.Month(month), lang)
+		}
+	case strings.HasPrefix(dateValue, "«"):
+		date := strings.TrimLeft(dateValue, "«")
+		year, month, _, err := cal.ParseDate(date)
+		if err == nil {
+			replyKeyboard, _, _ = cal.HandlerPrevYear("/meetingroomschedule "+params[0]+"\n", year, time.Month(month), lang)
+		}
+	case strings.HasPrefix(dateValue, "»"):
+		date := strings.TrimLeft(dateValue, "»")
+		year, month, _, err := cal.ParseDate(date)
+		if err == nil {
+			replyKeyboard, _, _ = cal.HandlerNextYear("/meetingroomschedule "+params[0]+"\n", year, time.Month(month), lang)
+		}
+	case strings.HasPrefix(dateValue, "m"):
+		currentTime := time.Now()
+		year := currentTime.Year()
+		month := currentTime.Month()
+
+		date := strings.TrimLeft(dateValue, "m")
+		year2, month2, _, err := cal.ParseDate(date)
+		if err == nil {
+			year = year2
+			month = time.Month(month2)
+		}
+		replyKeyboard = cal.GenerateMonths("/meetingroomschedule "+params[0]+"\n", year, month, lang)
+	case strings.HasPrefix(dateValue, "y"):
+		currentTime := time.Now()
+		year := currentTime.Year()
+		month := currentTime.Month()
+
+		date := strings.TrimLeft(dateValue, "y")
+		year2, month2, _, err := cal.ParseDate(date)
+		if err == nil {
+			year = year2
+			month = time.Month(month2)
+		}
+		replyKeyboard = cal.GenerateYears("/meetingroomschedule "+params[0]+"\n", year, month, lang)
+	default:
+		currentTime := time.Now()
+		year := currentTime.Year()
+		month := currentTime.Month()
+
+		year2, month2, _, err := cal.ParseDate(dateValue)
+		if err == nil {
+			year = year2
+			month = time.Month(month2)
+		}
+		replyKeyboard = cal.GenerateCalendar("/meetingroomschedule "+params[0]+"\n", year, month, lang)
+	}
+
+	if update.CallbackQuery != nil {
+		_, err := plugins.Bot.AnswerCallbackQuery(tgbotapi.NewCallback(update.CallbackQuery.ID, ""))
+		if err != nil {
+			dlog.Errorln(err.Error())
+		}
+
+		edit := tgbotapi.EditMessageReplyMarkupConfig{
+			BaseEdit: tgbotapi.BaseEdit{
+				ChatID:      update.CallbackQuery.Message.Chat.ID,
+				MessageID:   update.CallbackQuery.Message.MessageID,
+				ReplyMarkup: &replyKeyboard,
+			},
+		}
+
+		_, err = plugins.Bot.Send(edit)
+		return err
+	}
+
+	return telegram.SendCustom(user.TelegramID, 0, "Choose date to show schedule for "+params[0], false, &replyKeyboard)
 }
 
 var meetingroombook plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) error {

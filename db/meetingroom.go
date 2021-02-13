@@ -19,8 +19,23 @@ type Meetingroom struct {
 	UpdateddAt time.Time `sql:"updated_at"`
 }
 
+// MeetingroomSchedule ...
+type MeetingroomSchedule struct {
+	ID            int64     `sql:"id"`
+	MeetingroomID int64     `sql:"meetingroom_id"`
+	Start         time.Time `sql:"start"`
+	End           time.Time `sql:"end"`
+	Creator       int64     `sql:"creator"`
+	CreatedAt     time.Time `sql:"created_at"`
+	UpdateddAt    time.Time `sql:"updated_at"`
+}
+
 func (m *Meetingroom) String() string {
 	return m.Name
+}
+
+func (s *MeetingroomSchedule) String() string {
+	return s.Start.Format("15:04") + "..." + s.End.Format("15:04")
 }
 
 // AddMeetingroomIfNotExist ...
@@ -63,6 +78,52 @@ func AddMeetingroomIfNotExist(db *sql.DB, m *Meetingroom) (*Meetingroom, error) 
 	dlog.Debugf("%s (%d) added at %s\n", m.Name, m.ID, m.CreatedAt)
 
 	return m, nil
+}
+
+// GetMeetingroomByName ...
+func GetMeetingroomByName(db *sql.DB, m *Meetingroom) (*Meetingroom, error) {
+	var returnModel Meetingroom
+
+	result, err := QuerySQLObject(db, returnModel, `SELECT * FROM meetingrooms WHERE name = ? AND state='active';`, m.Name)
+	if err != nil {
+		return nil, err
+	}
+
+	if returnModel, ok := result.Interface().(*Meetingroom); ok && returnModel.Name != "" {
+		return returnModel, nil
+	}
+
+	return nil, fmt.Errorf(MeetingroomNotFound)
+}
+
+// GetMeetingroomScheduleByID ...
+func GetMeetingroomScheduleByID(db *sql.DB, m *Meetingroom, date string) (ms []*MeetingroomSchedule, err error) {
+	var returnModel MeetingroomSchedule
+
+	start, err := time.Parse("2006.01.02", date)
+	if err != nil {
+		return ms, err
+	}
+
+	sql := `SELECT * FROM meetingroom_schedule WHERE meetingroom_id = ? AND start >= ? AND end <= ?;`
+
+	args := make([]interface{}, 0)
+	args = append(args, m.ID)
+	args = append(args, start)
+	args = append(args, start.Add(time.Hour*24*time.Duration(1))) // + 1 day
+
+	result, err := QuerySQLList(db, returnModel, sql, args...)
+	if err != nil {
+		return ms, err
+	}
+
+	for _, item := range result {
+		if returnModel, ok := item.Interface().(*MeetingroomSchedule); ok {
+			ms = append(ms, returnModel)
+		}
+	}
+
+	return ms, err
 }
 
 // GetMeetingrooms ...

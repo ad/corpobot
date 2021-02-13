@@ -45,12 +45,54 @@ func (u *User) String() string {
 		b.WriteRune(']')
 		b.WriteRune(' ')
 	}
-	b.WriteRune('(')
-	b.WriteString(u.Role)
-	b.WriteRune(')')
+	if u.Role != "" {
+		b.WriteRune('(')
+		b.WriteString(u.Role)
+		b.WriteRune(')')
+	}
+
+	if b.Len() == 0 {
+		b.WriteString("ID")
+		b.WriteString(strconv.FormatInt(u.ID, 10))
+	}
 
 	return b.String()
 }
+
+func (u *User) Short() string {
+	var b strings.Builder
+	if u.UserName != "" {
+		b.WriteRune('@')
+		b.WriteString(u.UserName)
+	}
+	if u.FirstName != "" {
+		if b.Len() != 0 {
+			b.WriteRune(' ')
+		}
+		b.WriteString(u.FirstName)
+	}
+	if u.LastName != "" {
+		if b.Len() != 0 {
+			b.WriteRune(' ')
+		}
+		b.WriteString(u.LastName)
+	}
+	if b.Len() == 0 {
+		if u.TelegramID != 0 {
+			b.WriteRune('[')
+			b.WriteString(strconv.FormatInt(u.TelegramID, 10))
+			b.WriteRune(']')
+		}
+	}
+
+	if b.Len() == 0 {
+		b.WriteString("ID")
+		b.WriteString(strconv.FormatInt(u.ID, 10))
+	}
+
+	return b.String()
+}
+
 func (u *User) Paragraph() string {
 	var b strings.Builder
 	if u.FirstName != "" {
@@ -200,6 +242,22 @@ func UpdateUserBirthday(db *sql.DB, user *User) (int64, error) {
 	}
 
 	return rows, nil
+}
+
+// GetUserByID ...
+func GetUserByID(db *sql.DB, user *User) (*User, error) {
+	var returnModel User
+
+	result, err := QuerySQLObject(db, returnModel, `SELECT * FROM users WHERE id = ?;`, user.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	if returnModel, ok := result.Interface().(*User); ok && returnModel.Role != "" {
+		return returnModel, nil
+	}
+
+	return nil, fmt.Errorf(UserNotFound)
 }
 
 // GetUserByTelegramID ...
