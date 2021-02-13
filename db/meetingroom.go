@@ -96,8 +96,8 @@ func GetMeetingroomByName(db *sql.DB, m *Meetingroom) (*Meetingroom, error) {
 	return nil, fmt.Errorf(MeetingroomNotFound)
 }
 
-// GetMeetingroomScheduleByID ...
-func GetMeetingroomScheduleByID(db *sql.DB, m *Meetingroom, date string) (ms []*MeetingroomSchedule, err error) {
+// GetMeetingroomSchedulesByID ...
+func GetMeetingroomSchedulesByID(db *sql.DB, m *Meetingroom, date string) (ms []*MeetingroomSchedule, err error) {
 	var returnModel MeetingroomSchedule
 
 	start, err := time.Parse("2006.01.02", date)
@@ -124,6 +124,22 @@ func GetMeetingroomScheduleByID(db *sql.DB, m *Meetingroom, date string) (ms []*
 	}
 
 	return ms, err
+}
+
+// GetMeetingroomScheduleByID ...
+func GetMeetingroomScheduleByID(db *sql.DB, m *MeetingroomSchedule) (*MeetingroomSchedule, error) {
+	var returnModel MeetingroomSchedule
+
+	result, err := QuerySQLObject(db, returnModel, `SELECT * FROM meetingroom_schedule WHERE id = ?;`, m.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	if returnModel, ok := result.Interface().(*MeetingroomSchedule); ok && returnModel.ID != 0 {
+		return returnModel, nil
+	}
+
+	return nil, fmt.Errorf(MeetingroomNotFound)
 }
 
 // GetMeetingrooms ...
