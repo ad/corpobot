@@ -13,6 +13,11 @@ const (
 	GroupChatAlreadyExists = "groupchat already exists"
 	GroupChatNotFound      = "groupchat not found"
 
+	MeetingroomAlreadyExists = "meetingroom already exists"
+	MeetingroomNotFound      = "meetingroom not found"
+	MeetingroomDeleted       = "meetingroom deleted"
+	MeetingroomBlocked       = "meetingroom blocked"
+
 	Deleted = "deleted"
 	Blocked = "blocked"
 	New     = "new"
