@@ -210,3 +210,47 @@ func UpdateMeetingroomName(db *sql.DB, oldName, newName string) (int64, error) {
 
 	return rows, nil
 }
+
+// AddSchedule ...
+func AddSchedule(db *sql.DB, ms *MeetingroomSchedule) (*MeetingroomSchedule, error) {
+	var returnModel MeetingroomSchedule
+
+	result, err := QuerySQLObject(
+		db,
+		returnModel,
+		`SELECT * FROM meetingroom_schedule WHERE meetingroom_id = ? AND start < ? AND END > ?;`,
+		ms.MeetingroomID,
+		ms.End,
+		ms.Start,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if returnModel, ok := result.Interface().(*MeetingroomSchedule); ok && returnModel.ID != 0 {
+		return returnModel, fmt.Errorf(MeetingroomBusy)
+	}
+
+	res, err := db.Exec(
+		"INSERT INTO meetingroom_schedule (creator, meetingroom_id, start, end) VALUES (?, ?, ?, ?);",
+		ms.Creator,
+		ms.MeetingroomID,
+		ms.Start,
+		ms.End,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	ms.ID, err = res.LastInsertId()
+	if err != nil {
+		return nil, err
+	}
+
+	ms.CreatedAt = time.Now()
+
+	dlog.Debugf("%s %d (%d) %s-%s added at %s\n", ms.Creator, ms.MeetingroomID, ms.ID, ms.Start, ms.End, ms.CreatedAt)
+
+	return ms, nil
+}

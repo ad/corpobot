@@ -18,6 +18,8 @@ const (
 	MeetingroomDeleted       = "meetingroom deleted"
 	MeetingroomBlocked       = "meetingroom blocked"
 
+	MeetingroomBusy = "meetingroom busy"
+
 	Deleted = "deleted"
 	Blocked = "blocked"
 	New     = "new"

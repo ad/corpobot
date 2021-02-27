@@ -10,6 +10,7 @@ import (
 	"github.com/ad/corpobot/plugins"
 	"github.com/ad/corpobot/telegram"
 	dlog "github.com/amoghe/distillog"
+	"github.com/araddon/dateparse"
 	tgbotapi "gopkg.in/telegram-bot-api.v4"
 )
 
@@ -94,7 +95,6 @@ func (m *Plugin) OnStart() {
 	plugins.RegisterCommand("meetingroomschedule", "Return schedule of meetingroom", []string{"member", "admin", "owner"}, meetingroomSchedule)
 	plugins.RegisterCommand("meetingroomscheduleinfo", "Return schedule info", []string{"member", "admin", "owner"}, meetingroomScheduleInfo)
 	plugins.RegisterCommand("meetingroombook", "Book meetingroom", []string{"member", "admin", "owner"}, meetingroombook)
-	plugins.RegisterCommand("meetingroomrebook", "Rebook meetingroom", []string{"member", "admin", "owner"}, meetingroomrebook)
 	plugins.RegisterCommand("meetingroomunbook", "Unbook meetingroom", []string{"member", "admin", "owner"}, meetingroomunbook)
 }
 
@@ -111,7 +111,6 @@ func (m *Plugin) OnStop() {
 	plugins.UnregisterCommand("meetingroomschedule")
 	plugins.UnregisterCommand("meetingroomscheduleinfo")
 	plugins.UnregisterCommand("meetingroombook")
-	plugins.UnregisterCommand("meetingroomrebook")
 	plugins.UnregisterCommand("meetingroomunbook")
 }
 
@@ -231,7 +230,6 @@ var meetingroomActivate plugins.CommandCallback = func(update *tgbotapi.Update, 
 }
 
 var meetingroomSchedule plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) error {
-	params := strings.Split(args, "\n")
 	if args == "" {
 		meetingrooms, err := database.GetMeetingrooms(plugins.DB, strings.Fields(args))
 		if err != nil {
@@ -254,11 +252,12 @@ var meetingroomSchedule plugins.CommandCallback = func(update *tgbotapi.Update, 
 	}
 
 	var m *database.Meetingroom
+	params := strings.Split(args, "\n")
 	if len(params) <= 2 {
 		var err2 error
 		m, err2 = database.GetMeetingroomByName(plugins.DB, &database.Meetingroom{Name: params[0]})
 		if err2 != nil {
-			return telegram.Send(user.TelegramID, "Meetingroom not found, try another name")
+			return telegram.Send(user.TelegramID, "Meetingroom not found, try another name or check list /meetingroomlist")
 		}
 	}
 
@@ -387,7 +386,7 @@ var meetingroomScheduleInfo plugins.CommandCallback = func(update *tgbotapi.Upda
 		}
 
 		if len(meetingrooms) == 0 {
-			return telegram.Send(user.TelegramID, "meetingroom list is empty")
+			return telegram.Send(user.TelegramID, "meetingroom list is empty, /meetingroomcreate")
 		}
 
 		buttons := make([][]tgbotapi.InlineKeyboardButton, 0)
@@ -418,7 +417,6 @@ var meetingroomScheduleInfo plugins.CommandCallback = func(update *tgbotapi.Upda
 		creator = &database.User{ID: s.Creator}
 	}
 	buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(creator.Short()+": "+s.String(), "/meetingroomscheduleinfo "+strconv.FormatInt(s.ID, 10))))
-	buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("rebook", "/meetingroomrebook "+strconv.FormatInt(s.ID, 10))))
 	buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("unbook", "/meetingroomunbook "+strconv.FormatInt(s.ID, 10))))
 
 	replyKeyboard := tgbotapi.NewInlineKeyboardMarkup(buttons...)
@@ -427,13 +425,84 @@ var meetingroomScheduleInfo plugins.CommandCallback = func(update *tgbotapi.Upda
 }
 
 var meetingroombook plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) error {
-	return telegram.Send(user.TelegramID, "not implemented")
-}
+	if args == "" {
+		meetingrooms, err := database.GetMeetingrooms(plugins.DB, strings.Fields(args))
+		if err != nil {
+			return err
+		}
 
-var meetingroomrebook plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) error {
+		if len(meetingrooms) == 0 {
+			return telegram.Send(user.TelegramID, "meetingroom list is empty, /meetingroomcreate")
+		}
+
+		buttons := make([][]tgbotapi.InlineKeyboardButton, 0)
+
+		for _, m := range meetingrooms {
+			buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(m.String(), "/meetingroombook "+m.String())))
+		}
+
+		replyKeyboard := tgbotapi.NewInlineKeyboardMarkup(buttons...)
+
+		return telegram.SendCustom(user.TelegramID, 0, "Choose meetingroom, date, start and end time to add schedule", false, &replyKeyboard)
+	}
+
+	var m *database.Meetingroom
+	params := strings.SplitN(args, "\n", 3)
+	var err2 error
+	m, err2 = database.GetMeetingroomByName(plugins.DB, &database.Meetingroom{Name: params[0]})
+	if err2 != nil {
+		return telegram.Send(user.TelegramID, "Meetingroom not found, try another name or check list /meetingroomlist")
+	}
+
+	var startValue time.Time
+	if len(params) > 1 {
+		start, err := dateparse.ParseAny(params[1])
+		if err == nil {
+			startValue = start.Truncate(1 * time.Minute)
+		}
+	}
+
+	// показать выбор второго значения
+	// ...
+
+	var endValue time.Time
+	if len(params) == 3 {
+		end, err := dateparse.ParseAny(params[2])
+		if err == nil {
+			endValue = end.Truncate(1 * time.Minute)
+		}
+	}
+
+	if m.ID != 0 && !startValue.IsZero() && !endValue.IsZero() {
+		if startValue.After(endValue) || startValue.Equal(endValue) {
+			return telegram.Send(user.TelegramID, "start must come before the end")
+		}
+
+		creator, err := database.GetUserByTelegramID(plugins.DB, &database.User{TelegramID: user.TelegramID})
+		if err != nil {
+			return telegram.Send(user.TelegramID, "failed: "+err.Error())
+		}
+
+		meetingroomSchedule := &database.MeetingroomSchedule{
+			MeetingroomID: m.ID,
+			Creator:       creator.ID,
+			Start:         startValue,
+			End:           endValue,
+		}
+
+		_, err3 := database.AddSchedule(plugins.DB, meetingroomSchedule)
+		if err3 != nil {
+			return telegram.Send(user.TelegramID, "failed: "+err3.Error())
+		}
+
+		return telegram.Send(user.TelegramID, "added from "+startValue.Format("2006.01.02 15:04")+" to "+endValue.Format("2006.01.02 15:04"))
+	}
+
 	return telegram.Send(user.TelegramID, "not implemented")
 }
 
 var meetingroomunbook plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) error {
+	// если переговорка, дата и время парсятся — удаляем
+
 	return telegram.Send(user.TelegramID, "not implemented")
 }
