@@ -102,7 +102,7 @@ func AddUserIfNotExist(db *sql.DB, user *User) (*User, error) {
 		return returnModel, fmt.Errorf(UserBlocked)
 	}
 
-	if returnModel, ok := result.Interface().(*User); ok && returnModel.UserName != "" {
+	if returnModel, ok := result.Interface().(*User); ok && returnModel.TelegramID > 0 {
 		return returnModel, fmt.Errorf(UserAlreadyExists)
 	}
 
