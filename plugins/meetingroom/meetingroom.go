@@ -243,7 +243,7 @@ var meetingroomSchedule plugins.CommandCallback = func(update *tgbotapi.Update, 
 		buttons := make([][]tgbotapi.InlineKeyboardButton, 0)
 
 		for _, m := range meetingrooms {
-			buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(m.String(), "/meetingroomscheduleinfo "+m.String())))
+			buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(m.String(), "/meetingroomschedule "+m.String())))
 		}
 
 		replyKeyboard := tgbotapi.NewInlineKeyboardMarkup(buttons...)
@@ -283,7 +283,7 @@ var meetingroomSchedule plugins.CommandCallback = func(update *tgbotapi.Update, 
 			if err != nil {
 				creator = &database.User{ID: s.Creator}
 			}
-			buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(creator.Short()+": "+s.String(), "/meetingroomscheduleinfo "+strconv.FormatInt(s.ID, 10))))
+			buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(creator.Short()+": "+s.String(), "/meetingroomschedule "+strconv.FormatInt(s.ID, 10))))
 		}
 
 		replyKeyboard := tgbotapi.NewInlineKeyboardMarkup(buttons...)
@@ -454,6 +454,9 @@ var meetingroombook plugins.CommandCallback = func(update *tgbotapi.Update, comm
 		return telegram.Send(user.TelegramID, "Meetingroom not found, try another name or check list /meetingroomlist")
 	}
 
+	// показать выбор первого значения
+	// ...
+
 	var startValue time.Time
 	if len(params) > 1 {
 		start, err := dateparse.ParseAny(params[1])
@@ -490,12 +493,31 @@ var meetingroombook plugins.CommandCallback = func(update *tgbotapi.Update, comm
 			End:           endValue,
 		}
 
-		_, err3 := database.AddSchedule(plugins.DB, meetingroomSchedule)
+		ms, err3 := database.AddSchedule(plugins.DB, meetingroomSchedule)
 		if err3 != nil {
-			return telegram.Send(user.TelegramID, "failed: "+err3.Error())
+			if err3.Error() == database.MeetingroomBusy {
+				buttons := make([][]tgbotapi.InlineKeyboardButton, 0)
+
+				creator, err := database.GetUserByID(plugins.DB, &database.User{ID: ms.Creator})
+				if err != nil {
+					creator = &database.User{ID: ms.Creator}
+				}
+				buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData(creator.Short()+": "+ms.String(), "/meetingroomscheduleinfo "+strconv.FormatInt(ms.ID, 10))))
+				buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("unbook", "/meetingroomunbook "+strconv.FormatInt(ms.ID, 10))))
+
+				replyKeyboard := tgbotapi.NewInlineKeyboardMarkup(buttons...)
+
+				return telegram.SendCustom(user.TelegramID, 0, "Meetingroom is busy", false, &replyKeyboard)
+			}
+
+			return telegram.Send(user.TelegramID, "failed: "+err3.Error()+"\n"+ms.String())
 		}
 
-		return telegram.Send(user.TelegramID, "added from "+startValue.Format("2006.01.02 15:04")+" to "+endValue.Format("2006.01.02 15:04"))
+		buttons := make([][]tgbotapi.InlineKeyboardButton, 0)
+		buttons = append(buttons, tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("unbook", "/meetingroomunbook "+strconv.FormatInt(ms.ID, 10))))
+		replyKeyboard := tgbotapi.NewInlineKeyboardMarkup(buttons...)
+
+		return telegram.SendCustom(user.TelegramID, 0, "Meetingroom booked from "+startValue.Format("2006.01.02 15:04")+" to "+endValue.Format("2006.01.02 15:04"), false, &replyKeyboard)
 	}
 
 	return telegram.Send(user.TelegramID, "not implemented")
