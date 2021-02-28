@@ -254,3 +254,22 @@ func AddSchedule(db *sql.DB, ms *MeetingroomSchedule) (*MeetingroomSchedule, err
 
 	return ms, nil
 }
+
+// RemoveSchedule ...
+func RemoveSchedule(db *sql.DB, ms *MeetingroomSchedule) (bool, error) {
+	var returnModel MeetingroomSchedule
+
+	_, err := QuerySQLObject(
+		db,
+		returnModel,
+		`DELETE FROM meetingroom_schedule WHERE meetingroom_id = ? AND start = ? AND END = ?;`,
+		ms.MeetingroomID,
+		ms.End,
+		ms.Start,
+	)
+
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
