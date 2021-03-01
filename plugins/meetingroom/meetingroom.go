@@ -6,6 +6,7 @@ import (
 	"time"
 
 	cal "github.com/ad/corpobot/calendar"
+	"github.com/ad/corpobot/clock"
 	database "github.com/ad/corpobot/db"
 	"github.com/ad/corpobot/plugins"
 	"github.com/ad/corpobot/telegram"
@@ -550,14 +551,36 @@ var meetingroomBookUnbook plugins.CommandCallback = func(update *tgbotapi.Update
 		return telegram.SendCustom(user.TelegramID, 0, "Meetingroom unbooked from "+startValue.Format("2006.01.02 15:04")+" to "+endValue.Format("2006.01.02 15:04"), false, &replyKeyboard)
 	}
 
+	lang := telegram.GetLanguage(update)
+
 	// show calendar for start
 	if startValue.IsZero() {
+		replyKeyboard := clock.GenerateClock("/meetingroombook "+params[0]+"\n", -1, -1, lang)
 
+		if update.CallbackQuery != nil {
+			_, err := plugins.Bot.AnswerCallbackQuery(tgbotapi.NewCallback(update.CallbackQuery.ID, ""))
+			if err != nil {
+				dlog.Errorln(err.Error())
+			}
+
+			edit := tgbotapi.EditMessageReplyMarkupConfig{
+				BaseEdit: tgbotapi.BaseEdit{
+					ChatID:      update.CallbackQuery.Message.Chat.ID,
+					MessageID:   update.CallbackQuery.Message.MessageID,
+					ReplyMarkup: &replyKeyboard,
+				},
+			}
+
+			_, err = plugins.Bot.Send(edit)
+			return err
+		}
+
+		return telegram.SendCustom(user.TelegramID, 0, "Choose", false, &replyKeyboard)
 	}
 
 	// show calendar for end
 	if endValue.IsZero() {
-
+		return telegram.Send(user.TelegramID, "end")
 	}
 
 	return telegram.Send(user.TelegramID, "not implemented")
