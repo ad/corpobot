@@ -28,7 +28,6 @@ Those are my commands:
 - /groupchatinvitegenerate - Generate groupchat invite link
 - /groupchatlist - Groupchat list
 - /groupchatmembers - List groupchat members
-- /groupchatuserunban - Unban user in groupchat
 - /groupchatuserban - Ban user in groupchat
 - /groupchatuserunban - Unban user in groupchat
 - /groupcreate - Create group
@@ -40,6 +39,17 @@ Those are my commands:
 - /groupundelete - Undelete group
 - /help - Display this help
 - /me - Your ID/username
+- /meetingroomactivate - Activate meetingroom
+- /meetingroomblock - Block meetingroom
+- /meetingroombook - Book meetingroom
+- /meetingroomcreate - Add meetingroom
+- /meetingroomdelete - Delete meetingroom
+- /meetingroomlist - Return list of meetingrooms
+- /meetingroomrebook - Rebook meetingroom
+- /meetingroomrename - Rename meetingrooms
+- /meetingroomschedule - Return schedule of meetingroom
+- /meetingroomscheduleinfo - Return schedule info
+- /meetingroomunbook - Unbook meetingroom
 - /message - Send message to user
 - /plugindisable - Disable plugin
 - /pluginenable - Enable plugin
@@ -58,7 +68,6 @@ Those are my commands:
 - [ ] Поздравлять пользователя с днем рождения и уведомлять админов (заранее)
 
 ## Идеи для плагинов
-- [ ] Переговорки
 - [ ] Отпуска
 - [ ] Онбординг
 - [ ] Контакты

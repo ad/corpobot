@@ -6,7 +6,6 @@ import (
 	database "github.com/ad/corpobot/db"
 	"github.com/ad/corpobot/plugins"
 	"github.com/ad/corpobot/telegram"
-
 	dlog "github.com/amoghe/distillog"
 	tgbotapi "gopkg.in/telegram-bot-api.v4"
 )
@@ -22,7 +21,7 @@ func (m *Plugin) OnStart() {
 		return
 	}
 
-	plugins.RegisterCommand("me", "Your ID/username", []string{"new", "member", "admin", "owner"}, me)
+	plugins.RegisterCommand("me", "Your ID/username", []string{database.New, database.Member, database.Admin, database.Owner}, me)
 }
 
 func (m *Plugin) OnStop() {

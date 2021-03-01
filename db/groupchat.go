@@ -8,7 +8,6 @@ import (
 
 	dlog "github.com/amoghe/distillog"
 	sql "github.com/lazada/sqle"
-
 	_ "github.com/mattn/go-sqlite3" // Register some sql
 )
 
@@ -37,7 +36,7 @@ func (gc *Groupchat) String() string {
 // GetGroupchats ...
 func GetGroupchats(db *sql.DB, states []string) (groupchats []*Groupchat, err error) {
 	if len(states) == 0 {
-		states = []string{"active"}
+		states = []string{Active}
 	}
 
 	args := make([]interface{}, len(states))
@@ -109,7 +108,7 @@ func AddGroupChatIfNotExist(db *sql.DB, groupchat *Groupchat) (*Groupchat, error
 	}
 
 	res, err := db.Exec(
-		"INSERT INTO groupchats (title, telegram_id, invite_link, state) VALUES (?, ?, ?, ?);",
+		`INSERT INTO groupchats (title, telegram_id, invite_link, state) VALUES (?, ?, ?, ?);`,
 		groupchat.Title,
 		groupchat.TelegramID,
 		groupchat.InviteLink,
@@ -126,7 +125,7 @@ func AddGroupChatIfNotExist(db *sql.DB, groupchat *Groupchat) (*Groupchat, error
 
 	groupchat.CreatedAt = time.Now()
 
-	dlog.Debugf("%s (%d) added at %s\n", groupchat.Title, groupchat.ID, groupchat.CreatedAt)
+	dlog.Debugf(`%s (%d) added at %s\n`, groupchat.Title, groupchat.ID, groupchat.CreatedAt)
 
 	return groupchat, nil
 }
@@ -134,7 +133,7 @@ func AddGroupChatIfNotExist(db *sql.DB, groupchat *Groupchat) (*Groupchat, error
 // UpdateGroupChatInviteLink ...
 func UpdateGroupChatInviteLink(db *sql.DB, groupchat *Groupchat) (int64, error) {
 	result, err := db.Exec(
-		"UPDATE groupchats SET invite_link = ? WHERE telegram_id = ?;",
+		`UPDATE groupchats SET invite_link = ? WHERE telegram_id = ?;`,
 		groupchat.InviteLink,
 		groupchat.TelegramID)
 	if err != nil {
@@ -152,7 +151,7 @@ func UpdateGroupChatInviteLink(db *sql.DB, groupchat *Groupchat) (int64, error) 
 // UpdateGroupChatTitle ...
 func UpdateGroupChatTitle(db *sql.DB, groupchat *Groupchat) (int64, error) {
 	result, err := db.Exec(
-		"UPDATE groupchats SET title = ? WHERE telegram_id = ?;",
+		`UPDATE groupchats SET title = ? WHERE telegram_id = ?;`,
 		groupchat.Title,
 		groupchat.TelegramID)
 	if err != nil {
@@ -186,7 +185,7 @@ func GetGroupChatByTelegramID(db *sql.DB, groupchat *Groupchat) (*Groupchat, err
 // GroupChatDelete ...
 func GroupChatDelete(db *sql.DB, groupchat *Groupchat) (bool, error) {
 	_, err := db.Exec(
-		"DELETE FROM groupchats WHERE telegram_id = ?;",
+		`DELETE FROM groupchats WHERE telegram_id = ?;`,
 		groupchat.TelegramID,
 	)
 	if err != nil {

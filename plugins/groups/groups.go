@@ -23,15 +23,15 @@ func (m *Plugin) OnStart() {
 		return
 	}
 
-	plugins.RegisterCommand("grouplist", "Group list", []string{"member", "admin", "owner"}, groupList)
-	plugins.RegisterCommand("groupcreate", "Create group", []string{"admin", "owner"}, groupCreate)
-	plugins.RegisterCommand("grouprename", "Rename group", []string{"admin", "owner"}, groupRename)
-	plugins.RegisterCommand("groupdelete", "Delete group", []string{"admin", "owner"}, groupDeleteUndelete)
-	plugins.RegisterCommand("groupundelete", "Undelete group", []string{"admin", "owner"}, groupDeleteUndelete)
-	plugins.RegisterCommand("groupaddgroupchat", "Add groupchat to group", []string{"admin", "owner"}, groupAddGroupChat)
-	plugins.RegisterCommand("groupdeletegroupchat", "Delete groupchat from group", []string{"admin", "owner"}, groupDeleteGroupChat)
-	plugins.RegisterCommand("groupadduser", "Add user to group", []string{"admin", "owner"}, groupAddUser)
-	plugins.RegisterCommand("groupdeleteuser", "Delete user from group", []string{"admin", "owner"}, groupDeleteUser)
+	plugins.RegisterCommand("grouplist", "Group list", []string{database.Member, database.Admin, database.Owner}, groupList)
+	plugins.RegisterCommand("groupcreate", "Create group", []string{database.Admin, database.Owner}, groupCreate)
+	plugins.RegisterCommand("grouprename", "Rename group", []string{database.Admin, database.Owner}, groupRename)
+	plugins.RegisterCommand("groupdelete", "Delete group", []string{database.Admin, database.Owner}, groupDeleteUndelete)
+	plugins.RegisterCommand("groupundelete", "Undelete group", []string{database.Admin, database.Owner}, groupDeleteUndelete)
+	plugins.RegisterCommand("groupaddgroupchat", "Add groupchat to group", []string{database.Admin, database.Owner}, groupAddGroupChat)
+	plugins.RegisterCommand("groupdeletegroupchat", "Delete groupchat from group", []string{database.Admin, database.Owner}, groupDeleteGroupChat)
+	plugins.RegisterCommand("groupadduser", "Add user to group", []string{database.Admin, database.Owner}, groupAddUser)
+	plugins.RegisterCommand("groupdeleteuser", "Delete user from group", []string{database.Admin, database.Owner}, groupDeleteUser)
 }
 
 func (m *Plugin) OnStop() {

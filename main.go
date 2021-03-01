@@ -13,6 +13,7 @@ import (
 	_ "github.com/ad/corpobot/plugins/groupchats"
 	_ "github.com/ad/corpobot/plugins/groups"
 	_ "github.com/ad/corpobot/plugins/me"
+	_ "github.com/ad/corpobot/plugins/meetingroom"
 	_ "github.com/ad/corpobot/plugins/messages"
 	_ "github.com/ad/corpobot/plugins/starthelp"
 	_ "github.com/ad/corpobot/plugins/users"
@@ -22,7 +23,7 @@ import (
 	tgbotapi "gopkg.in/telegram-bot-api.v4"
 )
 
-const version = "0.3.1"
+const version = "0.3.2"
 
 var (
 	err error

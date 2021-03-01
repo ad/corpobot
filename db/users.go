@@ -45,12 +45,54 @@ func (u *User) String() string {
 		b.WriteRune(']')
 		b.WriteRune(' ')
 	}
-	b.WriteRune('(')
-	b.WriteString(u.Role)
-	b.WriteRune(')')
+	if u.Role != "" {
+		b.WriteRune('(')
+		b.WriteString(u.Role)
+		b.WriteRune(')')
+	}
+
+	if b.Len() == 0 {
+		b.WriteString("ID")
+		b.WriteString(strconv.FormatInt(u.ID, 10))
+	}
 
 	return b.String()
 }
+
+func (u *User) Short() string {
+	var b strings.Builder
+	if u.UserName != "" {
+		b.WriteRune('@')
+		b.WriteString(u.UserName)
+	}
+	if u.FirstName != "" {
+		if b.Len() != 0 {
+			b.WriteRune(' ')
+		}
+		b.WriteString(u.FirstName)
+	}
+	if u.LastName != "" {
+		if b.Len() != 0 {
+			b.WriteRune(' ')
+		}
+		b.WriteString(u.LastName)
+	}
+	if b.Len() == 0 {
+		if u.TelegramID != 0 {
+			b.WriteRune('[')
+			b.WriteString(strconv.FormatInt(u.TelegramID, 10))
+			b.WriteRune(']')
+		}
+	}
+
+	if b.Len() == 0 {
+		b.WriteString("ID")
+		b.WriteString(strconv.FormatInt(u.ID, 10))
+	}
+
+	return b.String()
+}
+
 func (u *User) Paragraph() string {
 	var b strings.Builder
 	if u.FirstName != "" {
@@ -94,11 +136,11 @@ func AddUserIfNotExist(db *sql.DB, user *User) (*User, error) {
 		return nil, err
 	}
 
-	if returnModel, ok := result.Interface().(*User); ok && returnModel.Role == "deleted" {
+	if returnModel, ok := result.Interface().(*User); ok && returnModel.Role == Deleted {
 		return returnModel, fmt.Errorf(UserDeleted)
 	}
 
-	if returnModel, ok := result.Interface().(*User); ok && returnModel.Role == "blocked" {
+	if returnModel, ok := result.Interface().(*User); ok && returnModel.Role == Blocked {
 		return returnModel, fmt.Errorf(UserBlocked)
 	}
 
@@ -107,7 +149,7 @@ func AddUserIfNotExist(db *sql.DB, user *User) (*User, error) {
 	}
 
 	res, err := db.Exec(
-		"INSERT INTO users (first_name, last_name, user_name, telegram_id, is_bot, role) VALUES (?, ?, ?, ?, ?, ?);",
+		`INSERT INTO users (first_name, last_name, user_name, telegram_id, is_bot, role) VALUES (?, ?, ?, ?, ?, ?);`,
 		user.FirstName,
 		user.LastName,
 		user.UserName,
@@ -126,7 +168,7 @@ func AddUserIfNotExist(db *sql.DB, user *User) (*User, error) {
 
 	user.CreatedAt = time.Now()
 
-	dlog.Debugf("%s (%d) added at %s\n", user.UserName, user.ID, user.CreatedAt)
+	dlog.Debugf(`%s (%d) added at %s\n`, user.UserName, user.ID, user.CreatedAt)
 
 	return user, nil
 }
@@ -134,7 +176,7 @@ func AddUserIfNotExist(db *sql.DB, user *User) (*User, error) {
 // GetUsers ...
 func GetUsers(db *sql.DB, roles []string) (users []*User, err error) {
 	if len(roles) == 0 {
-		roles = []string{"owner", "admin", "member", "new"}
+		roles = []string{Owner, Admin, Member, New}
 	}
 
 	args := make([]interface{}, len(roles))
@@ -171,10 +213,12 @@ ORDER BY
 // UpdateUserRole ...
 func UpdateUserRole(db *sql.DB, user *User) (int64, error) {
 	result, err := db.Exec(
-		"UPDATE users SET role = ? WHERE telegram_id = ? AND role != ? AND role != 'owner';",
+		`UPDATE users SET role = ? WHERE telegram_id = ? AND role != ? AND role != ?;`,
 		user.Role,
 		user.TelegramID,
-		user.Role)
+		user.Role,
+		Owner,
+	)
 	if err != nil {
 		return -1, err
 	}
@@ -189,7 +233,7 @@ func UpdateUserRole(db *sql.DB, user *User) (int64, error) {
 
 // UpdateUserBirthday ...
 func UpdateUserBirthday(db *sql.DB, user *User) (int64, error) {
-	result, err := db.Exec("UPDATE users SET birthday = ? WHERE telegram_id = ?;", user.Birthday, user.TelegramID)
+	result, err := db.Exec(`UPDATE users SET birthday = ? WHERE telegram_id = ?;`, user.Birthday, user.TelegramID)
 	if err != nil {
 		return -1, err
 	}
@@ -200,6 +244,22 @@ func UpdateUserBirthday(db *sql.DB, user *User) (int64, error) {
 	}
 
 	return rows, nil
+}
+
+// GetUserByID ...
+func GetUserByID(db *sql.DB, user *User) (*User, error) {
+	var returnModel User
+
+	result, err := QuerySQLObject(db, returnModel, `SELECT * FROM users WHERE id = ?;`, user.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	if returnModel, ok := result.Interface().(*User); ok && returnModel.Role != "" {
+		return returnModel, nil
+	}
+
+	return nil, fmt.Errorf(UserNotFound)
 }
 
 // GetUserByTelegramID ...
