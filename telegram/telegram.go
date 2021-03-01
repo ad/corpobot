@@ -93,7 +93,7 @@ func ProcessTelegramMessages(db *sql.DB, bot *tgbotapi.BotAPI, updates tgbotapi.
 
 		user, errAddUser := database.AddUserIfNotExist(db, user)
 		if errAddUser == nil {
-			users, errGetUsers := database.GetUsers(db, []string{"admin", "owner"})
+			users, errGetUsers := database.GetUsers(db, []string{database.Admin, database.Owner})
 			if errGetUsers == nil {
 				newUserMessage := "New user registered: " + user.String()
 				replyKeyboard := tgbotapi.NewInlineKeyboardMarkup(tgbotapi.NewInlineKeyboardRow(tgbotapi.NewInlineKeyboardButtonData("user info", "/user "+strconv.FormatInt(user.TelegramID, 10))))

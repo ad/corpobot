@@ -1,10 +1,9 @@
 package echo
 
 import (
+	database "github.com/ad/corpobot/db"
 	"github.com/ad/corpobot/plugins"
 	"github.com/ad/corpobot/telegram"
-
-	database "github.com/ad/corpobot/db"
 	dlog "github.com/amoghe/distillog"
 	tgbotapi "gopkg.in/telegram-bot-api.v4"
 )
@@ -20,7 +19,7 @@ func (m *Plugin) OnStart() {
 		return
 	}
 
-	plugins.RegisterCommand("echo", "example plugin", []string{"new", "member", "admin", "owner"}, echo)
+	plugins.RegisterCommand("echo", "example plugin", []string{database.New, database.Member, database.Admin, database.Owner}, echo)
 }
 
 func (m *Plugin) OnStop() {

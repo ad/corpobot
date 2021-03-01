@@ -47,11 +47,11 @@ func AddMeetingroomIfNotExist(db *sql.DB, m *Meetingroom) (*Meetingroom, error) 
 		return nil, err
 	}
 
-	if returnModel, ok := result.Interface().(*Meetingroom); ok && returnModel.State == "deleted" {
+	if returnModel, ok := result.Interface().(*Meetingroom); ok && returnModel.State == Deleted {
 		return returnModel, fmt.Errorf(MeetingroomDeleted)
 	}
 
-	if returnModel, ok := result.Interface().(*Meetingroom); ok && returnModel.State == "blocked" {
+	if returnModel, ok := result.Interface().(*Meetingroom); ok && returnModel.State == Blocked {
 		return returnModel, fmt.Errorf(MeetingroomBlocked)
 	}
 
@@ -60,7 +60,7 @@ func AddMeetingroomIfNotExist(db *sql.DB, m *Meetingroom) (*Meetingroom, error) 
 	}
 
 	res, err := db.Exec(
-		"INSERT INTO meetingrooms (name, state) VALUES (?, ?);",
+		`INSERT INTO meetingrooms (name, state) VALUES (?, ?);`,
 		m.Name,
 		m.State,
 	)
@@ -75,7 +75,7 @@ func AddMeetingroomIfNotExist(db *sql.DB, m *Meetingroom) (*Meetingroom, error) 
 
 	m.CreatedAt = time.Now()
 
-	dlog.Debugf("%s (%d) added at %s\n", m.Name, m.ID, m.CreatedAt)
+	dlog.Debugf(`%s (%d) added at %s\n`, m.Name, m.ID, m.CreatedAt)
 
 	return m, nil
 }
@@ -84,7 +84,7 @@ func AddMeetingroomIfNotExist(db *sql.DB, m *Meetingroom) (*Meetingroom, error) 
 func GetMeetingroomByName(db *sql.DB, m *Meetingroom) (*Meetingroom, error) {
 	var returnModel Meetingroom
 
-	result, err := QuerySQLObject(db, returnModel, `SELECT * FROM meetingrooms WHERE name = ? AND state='active';`, m.Name)
+	result, err := QuerySQLObject(db, returnModel, `SELECT * FROM meetingrooms WHERE name = ? AND state=?;`, m.Name, Active)
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +100,7 @@ func GetMeetingroomByName(db *sql.DB, m *Meetingroom) (*Meetingroom, error) {
 func GetMeetingroomSchedulesByID(db *sql.DB, m *Meetingroom, date string) (ms []*MeetingroomSchedule, err error) {
 	var returnModel MeetingroomSchedule
 
-	start, err := time.Parse("2006.01.02", date)
+	start, err := time.Parse(`2006.01.02`, date)
 	if err != nil {
 		return ms, err
 	}
@@ -145,7 +145,7 @@ func GetMeetingroomScheduleByID(db *sql.DB, m *MeetingroomSchedule) (*Meetingroo
 // GetMeetingrooms ...
 func GetMeetingrooms(db *sql.DB, states []string) (ms []*Meetingroom, err error) {
 	if len(states) == 0 {
-		states = []string{"active"}
+		states = []string{Active}
 	}
 
 	args := make([]interface{}, len(states))
@@ -159,7 +159,7 @@ func GetMeetingrooms(db *sql.DB, states []string) (ms []*Meetingroom, err error)
 FROM
 	meetingrooms
 WHERE
-	state IN (?` + strings.Repeat(",?", len(args)-1) + `)
+	state IN (?` + strings.Repeat(`,?`, len(args)-1) + `)
 ORDER BY
 	state, id;`
 
@@ -180,7 +180,7 @@ ORDER BY
 // UpdateMeetingroomState ...
 func UpdateMeetingroomState(db *sql.DB, m *Meetingroom) (int64, error) {
 	result, err := db.Exec(
-		"UPDATE meetingrooms SET state = ? WHERE name = ? AND state != ?;",
+		`UPDATE meetingrooms SET state = ? WHERE name = ? AND state != ?;`,
 		m.State,
 		m.Name,
 		m.State)
@@ -198,7 +198,7 @@ func UpdateMeetingroomState(db *sql.DB, m *Meetingroom) (int64, error) {
 
 // UpdateMeetingroomName ...
 func UpdateMeetingroomName(db *sql.DB, oldName, newName string) (int64, error) {
-	result, err := db.Exec("UPDATE meetingrooms SET name = ? WHERE name = ? AND name != ?;", newName, oldName, newName)
+	result, err := db.Exec(`UPDATE meetingrooms SET name = ? WHERE name = ? AND name != ?;`, newName, oldName, newName)
 	if err != nil {
 		return -1, err
 	}
@@ -233,7 +233,7 @@ func AddSchedule(db *sql.DB, ms *MeetingroomSchedule) (*MeetingroomSchedule, err
 	}
 
 	res, err := db.Exec(
-		"INSERT INTO meetingroom_schedule (creator, meetingroom_id, start, end) VALUES (?, ?, ?, ?);",
+		`INSERT INTO meetingroom_schedule (creator, meetingroom_id, start, end) VALUES (?, ?, ?, ?);`,
 		ms.Creator,
 		ms.MeetingroomID,
 		ms.Start,
@@ -250,7 +250,7 @@ func AddSchedule(db *sql.DB, ms *MeetingroomSchedule) (*MeetingroomSchedule, err
 
 	ms.CreatedAt = time.Now()
 
-	dlog.Debugf("%s %d (%d) %s-%s added at %s\n", ms.Creator, ms.MeetingroomID, ms.ID, ms.Start, ms.End, ms.CreatedAt)
+	dlog.Debugf(`%s %d (%d) %s-%s added at %s\n`, ms.Creator, ms.MeetingroomID, ms.ID, ms.Start, ms.End, ms.CreatedAt)
 
 	return ms, nil
 }

@@ -7,7 +7,6 @@ import (
 
 	dlog "github.com/amoghe/distillog"
 	sql "github.com/lazada/sqle"
-
 	_ "github.com/mattn/go-sqlite3" // Register some sql
 )
 
@@ -28,7 +27,7 @@ func AddGroupIfNotExist(db *sql.DB, group *Group) (*Group, error) {
 	var returnModel Group
 
 	if group.State == "" {
-		group.State = "active"
+		group.State = Active
 	}
 
 	result, err := QuerySQLObject(db, returnModel, `SELECT * FROM groups WHERE name = ?;`, group.Name)
@@ -36,7 +35,7 @@ func AddGroupIfNotExist(db *sql.DB, group *Group) (*Group, error) {
 		return nil, err
 	}
 
-	if returnModel, ok := result.Interface().(*Group); ok && returnModel.State == "deleted" {
+	if returnModel, ok := result.Interface().(*Group); ok && returnModel.State == Deleted {
 		return returnModel, fmt.Errorf(GroupDeleted)
 	}
 
@@ -45,7 +44,7 @@ func AddGroupIfNotExist(db *sql.DB, group *Group) (*Group, error) {
 	}
 
 	res, err := db.Exec(
-		"INSERT INTO groups (name, state) VALUES (?, ?);",
+		`INSERT INTO groups (name, state) VALUES (?, ?);`,
 		group.Name,
 		group.State,
 	)
@@ -60,7 +59,7 @@ func AddGroupIfNotExist(db *sql.DB, group *Group) (*Group, error) {
 
 	group.CreatedAt = time.Now()
 
-	dlog.Debugf("%s (%d) added at %s\n", group.Name, group.ID, group.CreatedAt)
+	dlog.Debugf(`%s (%d) added at %s\n`, group.Name, group.ID, group.CreatedAt)
 
 	return group, nil
 }
@@ -68,7 +67,7 @@ func AddGroupIfNotExist(db *sql.DB, group *Group) (*Group, error) {
 // GetGroups ...
 func GetGroups(db *sql.DB, states []string) (groups []*Group, err error) {
 	if len(states) == 0 {
-		states = []string{"active"}
+		states = []string{Active}
 	}
 
 	args := make([]interface{}, len(states))
@@ -103,7 +102,7 @@ ORDER BY
 // UpdateGroupState ...
 func UpdateGroupState(db *sql.DB, group *Group) (int64, error) {
 	result, err := db.Exec(
-		"UPDATE groups SET state = ? WHERE name = ? AND state != ?;",
+		`UPDATE groups SET state = ? WHERE name = ? AND state != ?;`,
 		group.State,
 		group.Name,
 		group.State)
@@ -122,7 +121,7 @@ func UpdateGroupState(db *sql.DB, group *Group) (int64, error) {
 // UpdateGroupName ...
 func UpdateGroupName(db *sql.DB, oldName, newName string) (int64, error) {
 	result, err := db.Exec(
-		"UPDATE groups SET name = ? WHERE name = ? AND name != ?;",
+		`UPDATE groups SET name = ? WHERE name = ? AND name != ?;`,
 		newName,
 		oldName,
 		newName)
@@ -157,7 +156,7 @@ func GetGroupByName(db *sql.DB, group *Group) (*Group, error) {
 // AddGroupGroupChatIfNotExist ...
 func AddGroupGroupChatIfNotExist(db *sql.DB, group *Group, groupchat *Groupchat) (bool, error) {
 	res, err := db.Exec(
-		"INSERT INTO groups_groupchats (group_id, groupchat_id) VALUES (?, ?);",
+		`INSERT INTO groups_groupchats (group_id, groupchat_id) VALUES (?, ?);`,
 		group.ID,
 		groupchat.ID,
 	)
@@ -176,7 +175,7 @@ func AddGroupGroupChatIfNotExist(db *sql.DB, group *Group, groupchat *Groupchat)
 // DeleteGroupGroupChat ...
 func DeleteGroupGroupChat(db *sql.DB, group *Group, groupchat *Groupchat) (bool, error) {
 	_, err := db.Exec(
-		"DELETE FROM groups_groupchats WHERE group_id = ? AND groupchat_id = ?;",
+		`DELETE FROM groups_groupchats WHERE group_id = ? AND groupchat_id = ?;`,
 		group.ID,
 		groupchat.ID,
 	)
@@ -190,7 +189,7 @@ func DeleteGroupGroupChat(db *sql.DB, group *Group, groupchat *Groupchat) (bool,
 // AddGroupUserIfNotExist ...
 func AddGroupUserIfNotExist(db *sql.DB, group *Group, user *User) (bool, error) {
 	res, err := db.Exec(
-		"INSERT INTO groups_Users (group_id, user_id) VALUES (?, ?);",
+		`INSERT INTO groups_Users (group_id, user_id) VALUES (?, ?);`,
 		group.ID,
 		user.ID,
 	)
@@ -209,7 +208,7 @@ func AddGroupUserIfNotExist(db *sql.DB, group *Group, user *User) (bool, error) 
 // DeleteGroupUser ...
 func DeleteGroupUser(db *sql.DB, group *Group, user *User) (bool, error) {
 	_, err := db.Exec(
-		"DELETE FROM groups_Users WHERE group_id = ? AND user_id = ?;",
+		`DELETE FROM groups_Users WHERE group_id = ? AND user_id = ?;`,
 		group.ID,
 		user.ID,
 	)

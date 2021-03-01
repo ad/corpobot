@@ -20,8 +20,10 @@ const (
 
 	MeetingroomBusy = "meetingroom busy"
 
+	Active  = "active"
 	Deleted = "deleted"
 	Blocked = "blocked"
+	Enabled = "enabled"
 	New     = "new"
 	Member  = "member"
 	Admin   = "admin"

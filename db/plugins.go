@@ -6,7 +6,6 @@ import (
 
 	dlog "github.com/amoghe/distillog"
 	sql "github.com/lazada/sqle"
-
 	_ "github.com/mattn/go-sqlite3" // Register some sql
 )
 
@@ -42,7 +41,7 @@ func AddPluginIfNotExist(db *sql.DB, plugin *Plugin) (*Plugin, error) {
 	}
 
 	res, err := db.Exec(
-		"INSERT INTO plugins (name, state) VALUES (?, ?);",
+		`INSERT INTO plugins (name, state) VALUES (?, ?);`,
 		plugin.Name,
 		plugin.State,
 	)
@@ -57,7 +56,7 @@ func AddPluginIfNotExist(db *sql.DB, plugin *Plugin) (*Plugin, error) {
 
 	plugin.CreatedAt = time.Now()
 
-	dlog.Debugf("%s (%s) added at %s\n", plugin.Name, plugin.State, plugin.CreatedAt)
+	dlog.Debugf(`%s (%s) added at %s\n`, plugin.Name, plugin.State, plugin.CreatedAt)
 
 	return plugin, nil
 }
@@ -65,7 +64,7 @@ func AddPluginIfNotExist(db *sql.DB, plugin *Plugin) (*Plugin, error) {
 // UpdatePluginState ...
 func UpdatePluginState(db *sql.DB, plugin *Plugin) (int64, error) {
 	result, err := db.Exec(
-		"UPDATE plugins SET state = ? WHERE name = ? AND state != ?;",
+		`UPDATE plugins SET state = ? WHERE name = ? AND state != ?;`,
 		plugin.State,
 		plugin.Name,
 		plugin.State)
@@ -106,5 +105,5 @@ ORDER BY
 }
 
 func (p *Plugin) IsEnabled() bool {
-	return p.State == "enabled"
+	return p.State == Enabled
 }

@@ -208,7 +208,7 @@ func QuerySQLList(db *sql.DB, returnModel interface{}, sql string, args ...inter
 // StoreTelegramMessage ...
 func StoreTelegramMessage(db *sql.DB, message *TelegramMessage) error {
 	_, err := db.Exec(
-		"INSERT INTO telegram_messages (telegram_id, message, created_at, is_incoming) VALUES (?, ?, ?, ?);",
+		`INSERT INTO telegram_messages (telegram_id, message, created_at, is_incoming) VALUES (?, ?, ?, ?);`,
 		message.TelegramID,
 		message.Message,
 		message.Date,

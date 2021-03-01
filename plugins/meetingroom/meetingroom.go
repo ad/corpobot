@@ -86,17 +86,17 @@ func (m *Plugin) OnStart() {
 		dlog.Errorf("%s", err)
 	}
 
-	plugins.RegisterCommand("meetingroomcreate", "Add meetingroom", []string{"admin", "owner"}, meetingroomCreate)
-	plugins.RegisterCommand("meetingroomlist", "Return list of meetingrooms", []string{"member", "admin", "owner"}, meetingroomList)
-	plugins.RegisterCommand("meetingroomrename", "Rename meetingrooms", []string{"member", "admin", "owner"}, meetingroomRename)
-	plugins.RegisterCommand("meetingroomdelete", "Delete meetingroom", []string{"admin", "owner"}, meetingroomDelete)
-	plugins.RegisterCommand("meetingroomblock", "Block meetingroom", []string{"admin", "owner"}, meetingroomBlock)
-	plugins.RegisterCommand("meetingroomactivate", "Activate meetingroom", []string{"admin", "owner"}, meetingroomActivate)
+	plugins.RegisterCommand("meetingroomcreate", "Add meetingroom", []string{database.Admin, database.Owner}, meetingroomCreate)
+	plugins.RegisterCommand("meetingroomlist", "Return list of meetingrooms", []string{database.Member, database.Admin, database.Owner}, meetingroomList)
+	plugins.RegisterCommand("meetingroomrename", "Rename meetingrooms", []string{database.Member, database.Admin, database.Owner}, meetingroomRename)
+	plugins.RegisterCommand("meetingroomdelete", "Delete meetingroom", []string{database.Admin, database.Owner}, meetingroomDelete)
+	plugins.RegisterCommand("meetingroomblock", "Block meetingroom", []string{database.Admin, database.Owner}, meetingroomBlock)
+	plugins.RegisterCommand("meetingroomactivate", "Activate meetingroom", []string{database.Admin, database.Owner}, meetingroomActivate)
 
-	plugins.RegisterCommand("meetingroomschedule", "Return schedule of meetingroom", []string{"member", "admin", "owner"}, meetingroomSchedule)
-	plugins.RegisterCommand("meetingroomscheduleinfo", "Return schedule info", []string{"member", "admin", "owner"}, meetingroomScheduleInfo)
-	plugins.RegisterCommand("meetingroombook", "Book meetingroom", []string{"member", "admin", "owner"}, meetingroomBookUnbook)
-	plugins.RegisterCommand("meetingroomunbook", "Unbook meetingroom", []string{"member", "admin", "owner"}, meetingroomBookUnbook)
+	plugins.RegisterCommand("meetingroomschedule", "Return schedule of meetingroom", []string{database.Member, database.Admin, database.Owner}, meetingroomSchedule)
+	plugins.RegisterCommand("meetingroomscheduleinfo", "Return schedule info", []string{database.Member, database.Admin, database.Owner}, meetingroomScheduleInfo)
+	plugins.RegisterCommand("meetingroombook", "Book meetingroom", []string{database.Member, database.Admin, database.Owner}, meetingroomBookUnbook)
+	plugins.RegisterCommand("meetingroomunbook", "Unbook meetingroom", []string{database.Member, database.Admin, database.Owner}, meetingroomBookUnbook)
 }
 
 func (m *Plugin) OnStop() {
