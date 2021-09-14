@@ -94,11 +94,11 @@ func AddUserIfNotExist(db *sql.DB, user *User) (*User, error) {
 		return nil, err
 	}
 
-	if returnModel, ok := result.Interface().(*User); ok && returnModel.Role == "deleted" {
+	if returnModel, ok := result.Interface().(*User); ok && returnModel.Role == Deleted {
 		return returnModel, fmt.Errorf(UserDeleted)
 	}
 
-	if returnModel, ok := result.Interface().(*User); ok && returnModel.Role == "blocked" {
+	if returnModel, ok := result.Interface().(*User); ok && returnModel.Role == Blocked {
 		return returnModel, fmt.Errorf(UserBlocked)
 	}
 
@@ -134,7 +134,7 @@ func AddUserIfNotExist(db *sql.DB, user *User) (*User, error) {
 // GetUsers ...
 func GetUsers(db *sql.DB, roles []string) (users []*User, err error) {
 	if len(roles) == 0 {
-		roles = []string{"owner", "admin", "member", "new"}
+		roles = []string{Owner, Admin, Member, New}
 	}
 
 	args := make([]interface{}, len(roles))

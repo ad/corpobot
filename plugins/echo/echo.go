@@ -20,7 +20,7 @@ func (m *Plugin) OnStart() {
 		return
 	}
 
-	plugins.RegisterCommand("echo", "example plugin", []string{"new", "member", "admin", "owner"}, echo)
+	plugins.RegisterCommand("echo", "example plugin", []string{database.New, database.Member, database.Admin, database.Owner}, echo)
 }
 
 func (m *Plugin) OnStop() {

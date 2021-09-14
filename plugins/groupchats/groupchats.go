@@ -23,12 +23,12 @@ func (m *Plugin) OnStart() {
 		return
 	}
 
-	plugins.RegisterCommand("groupchatlist", "Groupchat list", []string{"member", "admin", "owner"}, groupChatList)
-	plugins.RegisterCommand("groupchatinvitegenerate", "Generate groupchat invite link", []string{"admin", "owner"}, groupChatInviteGenerate)
-	plugins.RegisterCommand("groupchatuserban", "Ban user in groupchat", []string{"admin", "owner"}, groupChatUserBan)
-	plugins.RegisterCommand("groupchatuserunban", "Unban user in groupchat", []string{"admin", "owner"}, groupChatUserUnban)
-	plugins.RegisterCommand("groupchatmembers", "List groupchat members", []string{"admin", "owner"}, groupChatMembers)
-	plugins.RegisterCommand("groupchatdelete", "Delete groupchat", []string{"admin", "owner"}, groupChatDelete)
+	plugins.RegisterCommand("groupchatlist", "Groupchat list", []string{database.Member, database.Admin, database.Owner}, groupChatList)
+	plugins.RegisterCommand("groupchatinvitegenerate", "Generate groupchat invite link", []string{database.Admin, database.Owner}, groupChatInviteGenerate)
+	plugins.RegisterCommand("groupchatuserban", "Ban user in groupchat", []string{database.Admin, database.Owner}, groupChatUserBan)
+	plugins.RegisterCommand("groupchatuserunban", "Unban user in groupchat", []string{database.Admin, database.Owner}, groupChatUserUnban)
+	plugins.RegisterCommand("groupchatmembers", "List groupchat members", []string{database.Admin, database.Owner}, groupChatMembers)
+	plugins.RegisterCommand("groupchatdelete", "Delete groupchat", []string{database.Admin, database.Owner}, groupChatDelete)
 }
 
 func (m *Plugin) OnStop() {

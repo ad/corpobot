@@ -25,8 +25,8 @@ func (m *Plugin) OnStart() {
 		return
 	}
 
-	plugins.RegisterCommand("broadcast", "Send message to all users", []string{"admin", "owner"}, broadcast)
-	plugins.RegisterCommand("message", "Send message to user", []string{"admin", "owner"}, message)
+	plugins.RegisterCommand("broadcast", "Send message to all users", []string{database.Admin, database.Owner}, broadcast)
+	plugins.RegisterCommand("message", "Send message to user", []string{database.Admin, database.Owner}, message)
 }
 
 func (m *Plugin) OnStop() {
