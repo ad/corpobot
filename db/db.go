@@ -214,9 +214,5 @@ func StoreTelegramMessage(db *sql.DB, message *TelegramMessage) error {
 		message.Date,
 		message.IsIncoming)
 
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }

@@ -1,4 +1,4 @@
-FROM golang:alpine as builder
+FROM golang:alpine3.12 as builder
 RUN apk update && apk add --no-cache git ca-certificates tzdata gcc musl-dev && update-ca-certificates
 
 ENV USER=appuser

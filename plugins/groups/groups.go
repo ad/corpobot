@@ -54,27 +54,25 @@ var groupList plugins.CommandCallback = func(update *tgbotapi.Update, command, a
 		return err
 	}
 
-	if len(groups) > 0 {
-		var groupsList []string
-
-		for _, u := range groups {
-			groupsList = append(groupsList, "* "+u.String())
-
-			groupchats, err := database.GetGroupchatsByGroupID(plugins.DB, u.ID)
-			if err != nil {
-				return err
-			}
-			if len(groupchats) > 0 {
-				for _, c := range groupchats {
-					groupsList = append(groupsList, "    * "+c.String())
-				}
-			}
-		}
-
-		return telegram.Send(user.TelegramID, strings.Join(groupsList, "\n"))
+	if len(groups) == 0 {
+		return telegram.Send(user.TelegramID, "group list is empty")
 	}
 
-	return telegram.Send(user.TelegramID, "group list is empty")
+	var groupsList []string
+
+	for _, u := range groups {
+		groupsList = append(groupsList, "* "+u.String())
+
+		groupchats, err := database.GetGroupchatsByGroupID(plugins.DB, u.ID)
+		if err != nil {
+			return err
+		}
+		for _, c := range groupchats {
+			groupsList = append(groupsList, "    * "+c.String())
+		}
+	}
+
+	return telegram.Send(user.TelegramID, strings.Join(groupsList, "\n"))
 }
 
 var groupCreate plugins.CommandCallback = func(update *tgbotapi.Update, command, args string, user *database.User) error {

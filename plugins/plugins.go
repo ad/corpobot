@@ -120,6 +120,11 @@ func KeyOf(p TelegramPlugin) string {
 
 // Register a Command exported by a plugin
 func RegisterCommand(command string, description string, roles []string, callback CommandCallback) {
+	if _, ok := Commands.Load(command); ok {
+		dlog.Debugln("[SKIP] /" + command + " already registered by another plugin")
+		return
+	}
+
 	r := make(map[string]bool)
 	for _, v := range roles {
 		r[v] = true
