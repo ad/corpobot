@@ -9,13 +9,13 @@ github.com/lazada/sqle
 github.com/lazada/sqle/embed
 github.com/lazada/sqle/strcase
 # github.com/mattn/go-sqlite3 v1.14.16
-## explicit
+## explicit; go 1.16
 github.com/mattn/go-sqlite3
 # github.com/technoweenie/multipartstreamer v1.0.1
 ## explicit
 github.com/technoweenie/multipartstreamer
 # golang.org/x/net v0.7.0
-## explicit
+## explicit; go 1.17
 golang.org/x/net/internal/socks
 golang.org/x/net/proxy
 # gopkg.in/telegram-bot-api.v4 v4.6.4
