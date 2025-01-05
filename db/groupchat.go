@@ -1,7 +1,7 @@
 package db
 
 import (
-	"fmt"
+	"errors"
 	"strconv"
 	"strings"
 	"time"
@@ -105,7 +105,7 @@ func AddGroupChatIfNotExist(db *sql.DB, groupchat *Groupchat) (*Groupchat, error
 	}
 
 	if returnModel, ok := result.Interface().(*Groupchat); ok && returnModel.State != "" {
-		return returnModel, fmt.Errorf(GroupChatAlreadyExists)
+		return returnModel, errors.New(GroupChatAlreadyExists)
 	}
 
 	res, err := db.Exec(
@@ -180,7 +180,7 @@ func GetGroupChatByTelegramID(db *sql.DB, groupchat *Groupchat) (*Groupchat, err
 		return returnModel, nil
 	}
 
-	return nil, fmt.Errorf(GroupChatNotFound)
+	return nil, errors.New(GroupChatNotFound)
 }
 
 // GroupChatDelete ...

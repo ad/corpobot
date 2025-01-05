@@ -1,7 +1,7 @@
 package db
 
 import (
-	"fmt"
+	"errors"
 	"strconv"
 	"strings"
 	"time"
@@ -95,15 +95,15 @@ func AddUserIfNotExist(db *sql.DB, user *User) (*User, error) {
 	}
 
 	if returnModel, ok := result.Interface().(*User); ok && returnModel.Role == Deleted {
-		return returnModel, fmt.Errorf(UserDeleted)
+		return returnModel, errors.New(UserDeleted)
 	}
 
 	if returnModel, ok := result.Interface().(*User); ok && returnModel.Role == Blocked {
-		return returnModel, fmt.Errorf(UserBlocked)
+		return returnModel, errors.New(UserBlocked)
 	}
 
 	if returnModel, ok := result.Interface().(*User); ok && returnModel.TelegramID > 0 {
-		return returnModel, fmt.Errorf(UserAlreadyExists)
+		return returnModel, errors.New(UserAlreadyExists)
 	}
 
 	res, err := db.Exec(
@@ -215,5 +215,5 @@ func GetUserByTelegramID(db *sql.DB, user *User) (*User, error) {
 		return returnModel, nil
 	}
 
-	return nil, fmt.Errorf(UserNotFound)
+	return nil, errors.New(UserNotFound)
 }

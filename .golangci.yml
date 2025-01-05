@@ -16,13 +16,11 @@ issues:
       - goconst
 linters:
   enable:
-    - golint
     - gosec
     - unconvert
     - gocyclo
     - goconst
     - goimports
-    - maligned
     - gocritic
 linters-settings:
   errcheck:

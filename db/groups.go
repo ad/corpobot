@@ -1,7 +1,7 @@
 package db
 
 import (
-	"fmt"
+	"errors"
 	"strings"
 	"time"
 
@@ -37,11 +37,11 @@ func AddGroupIfNotExist(db *sql.DB, group *Group) (*Group, error) {
 	}
 
 	if returnModel, ok := result.Interface().(*Group); ok && returnModel.State == Deleted {
-		return returnModel, fmt.Errorf(GroupDeleted)
+		return returnModel, errors.New(GroupDeleted)
 	}
 
 	if returnModel, ok := result.Interface().(*Group); ok && returnModel.Name != "" {
-		return returnModel, fmt.Errorf(GroupAlreadyExists)
+		return returnModel, errors.New(GroupAlreadyExists)
 	}
 
 	res, err := db.Exec(
@@ -151,7 +151,7 @@ func GetGroupByName(db *sql.DB, group *Group) (*Group, error) {
 		return returnModel, nil
 	}
 
-	return nil, fmt.Errorf(GroupNotFound)
+	return nil, errors.New(GroupNotFound)
 }
 
 // AddGroupGroupChatIfNotExist ...
